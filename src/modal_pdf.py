@@ -1,6 +1,8 @@
 # docx -> pdf with headless LibreOffice on Modal (no volumes). usage: modal run src/modal_pdf.py --src report/out/report.docx
 import modal, os
-image = modal.Image.debian_slim(python_version="3.12").apt_install("libreoffice-writer", "fonts-dejavu", "fonts-liberation", "fonts-crosextra-carlito", "fonts-crosextra-caladea", "fonts-noto-core")
+image = modal.Image.debian_slim(python_version="3.12").apt_install("libreoffice-writer", "fonts-dejavu", "fonts-liberation", "fonts-crosextra-carlito", "fonts-crosextra-caladea", "fonts-noto-core").apt_install("ca-certificates", "curl", "unzip", "fontconfig").run_commands(
+    "mkdir -p /usr/share/fonts/opentype/xcharter && cd /tmp && curl -sL -o x.zip https://mirrors.ctan.org/fonts/xcharter.zip "
+    "&& unzip -q x.zip && cp xcharter/opentype/XCharter-Roman.otf xcharter/opentype/XCharter-Bold.otf xcharter/opentype/XCharter-Italic.otf xcharter/opentype/XCharter-BoldItalic.otf /usr/share/fonts/opentype/xcharter/ && fc-cache -f")
 app = modal.App("fof-pdf", image=image)
 @app.function(timeout=600)
 def convert(b: bytes) -> bytes:

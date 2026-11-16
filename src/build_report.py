@@ -7,12 +7,34 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 spec = importlib.util.spec_from_file_location("content", "report/content.py"); C = importlib.util.module_from_spec(spec); spec.loader.exec_module(C)
 d = docx.Document("report/template.docx")
+from docx.oxml.ns import qn as _qn
+from docx.oxml import OxmlElement as _OE
+FONT = getattr(C, "FONT", "XCharter")
+def _style_font(st, size=None, bold=None, color=(0, 0, 0)):
+    rpr = st.element.get_or_add_rPr()
+    rf = rpr.find(_qn("w:rFonts"))
+    if rf is None: rf = _OE("w:rFonts"); rpr.insert(0, rf)
+    for k in ("w:ascii", "w:hAnsi", "w:cs", "w:eastAsia"): rf.set(_qn(k), FONT)
+    for k in ("w:asciiTheme", "w:hAnsiTheme", "w:cstheme", "w:eastAsiaTheme"):
+        if rf.get(_qn(k)) is not None: del rf.attrib[_qn(k)]
+    if size: st.font.size = Pt(size)
+    if bold is not None: st.font.bold = bold
+    if color is not None: st.font.color.rgb = RGBColor(*color)
+_style_font(d.styles["Normal"]); _style_font(d.styles["Title"], 16.5, True)
+_style_font(d.styles["Heading 2"], 12.5, True); _style_font(d.styles["Heading 3"], 10.8, True)
+for _h in ("Heading 2", "Heading 3"):
+    pf = d.styles[_h].paragraph_format; pf.space_before = Pt(10 if _h == "Heading 2" else 6); pf.space_after = Pt(3); pf.keep_with_next = True
+def _rule_below(p, sz=4, color="808080"):
+    pPr = p._p.get_or_add_pPr(); b = _OE("w:pBdr"); e = _OE("w:bottom")
+    e.set(_qn("w:val"), "single"); e.set(_qn("w:sz"), str(sz)); e.set(_qn("w:space"), "2"); e.set(_qn("w:color"), color); b.append(e); pPr.append(b)
 
 # ---------------- title / authors / abstract block ----------------
 t0 = d.tables[0]
 title_p = [p for p in t0.rows[0].cells[0].paragraphs if p.style.name == "Title"][0]
 for r in title_p.runs[1:]: r.text = ""
 title_p.runs[0].text = C.TITLE
+title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+for r in title_p.runs: r.font.name = FONT; r.font.size = Pt(16.5); r.bold = True; r.font.color.rgb = RGBColor(0, 0, 0)
 # replace the nested author/abstract grid (renders badly outside Google Docs) with full-width paragraphs
 t0._tbl.remove(t0.rows[1]._tr)
 from docx.oxml.ns import qn
@@ -23,10 +45,16 @@ def _para_after(anchor_el, text, size=10, bold=False, italic=False, center=False
     newp.paragraph_format.space_after = Pt(space_after); newp.paragraph_format.line_spacing = 1.0
     anchor_el.addnext(newp._p); return newp._p
 el = t0._tbl
-el = _para_after(el, "   ·   ".join(f"{n} ({a})" for n, a in C.AUTHORS), size=10.5, center=True, space_after=1)
-el = _para_after(el, "With Apart Research", size=9.5, italic=True, center=True, space_after=8)
-el = _para_after(el, "Abstract", size=11, bold=True, center=True, space_after=2)
-el = _para_after(el, C.ABSTRACT, size=9.5, space_after=6)
+el = _para_after(el, "   ·   ".join(n for n, a in C.AUTHORS), size=11, bold=True, center=True, space_after=2)
+el = _para_after(el, "Independent researchers", size=10, center=True, space_after=5)
+el = _para_after(el, "Apart Research · AI x Epistemics Research Sprint, Track 1 · November 2026", size=9, italic=True, center=True, space_after=2)
+el = _para_after(el, "Code, data and every cached model output: " + getattr(C, "GITHUB_URL", ""), size=9, italic=True, center=True, space_after=4)
+_rp = d.add_paragraph(); _rp.paragraph_format.space_after = Pt(8); _rule_below(_rp, sz=6, color="000000"); el.addnext(_rp._p); el = _rp._p
+_ab = d.add_paragraph(); _r = _ab.add_run("ABSTRACT"); _r.bold = True; _r.font.size = Pt(9.5); _r.font.small_caps = False
+_ab.alignment = WD_ALIGN_PARAGRAPH.CENTER; _ab.paragraph_format.space_after = Pt(4); el.addnext(_ab._p); el = _ab._p
+_ap = d.add_paragraph(); _r = _ap.add_run(C.ABSTRACT); _r.font.size = Pt(9.5)
+_ap.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY; _ap.paragraph_format.left_indent = Inches(0.45); _ap.paragraph_format.right_indent = Inches(0.45)
+_ap.paragraph_format.line_spacing = 1.12; _ap.paragraph_format.space_after = Pt(10); el.addnext(_ap._p); el = _ap._p
 # remove info-box table (table 1)
 info = d.tables[1]._tbl; info.getparent().remove(info)
 
@@ -59,7 +87,7 @@ def add_par(text, style="normal", bold=False, italic=False, size=None, align=Non
     elif style == "normal" and size is None: p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.space_after = Pt(space_after); p.paragraph_format.space_before = Pt(0)
     if style == "normal":
-        p.paragraph_format.line_spacing = 1.0
+        p.paragraph_format.line_spacing = 1.07
         for r in p.runs:
             if r.font.size is None: r.font.size = Pt(BODY_PT)
     return p
@@ -139,8 +167,9 @@ for blk in C.BODY:
         for i, r in enumerate(C.REFS):
             p = add_par(f"[{i + 1}] {r}", size=8.5, space_after=1); p.paragraph_format.left_indent = Inches(0.25); p.paragraph_format.first_line_indent = Inches(-0.25)
         continue
-    if kind == "h2": add_par(blk[1], style="Heading 2")
-    elif kind == "h3": add_par(blk[1], style="Heading 3")
+    if kind == "h2":
+        _hp = add_par(re.sub(r"^(\d+)\.\s+", r"\1   ", blk[1]), style="Heading 2"); _rule_below(_hp, sz=4, color="999999")
+    elif kind == "h3": add_par(re.sub(r"^(\d+\.\d+)\s+", r"\1   ", blk[1]), style="Heading 3")
     elif kind == "p": add_par(blk[1])
     elif kind == "bullets":
         for b in blk[1]:
