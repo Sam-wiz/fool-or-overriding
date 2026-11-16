@@ -1,8 +1,22 @@
 # Fooled or Overriding?
 
 Code and results for an Apart Research **AI x Epistemics Research Sprint** project (13–16 Nov 2026). Authors: Samrudh Jain and Pranav Aggarwal.
+Report: `report/out/Fooled_or_Overriding_Apart_AIxEpistemics.pdf` (built from `report/content.py` by `src/build_report.py`).
 
-**Result in one line.** Panels make agents commit, but the internal unknowability signal and the model's own self-report barely move even when the answer is placed in the panel, so the probe cannot separate *fooled* from *overriding*. Patching shows the panel acts through the question tokens mid-network, largely outside that signal.
+**Result in one line.** Panels make agents commit on unknowable questions; linear probes and the model's own self-report barely move even when the answer is placed in the panel (evidence-blind), but a Jacobian-lens readout of the decision state passes that calibration, and by it models of 8B and above keep their doubt and act anyway (overriding) while OLMo-2-7B is fooled. Patching shows the panel acts through the question tokens mid-network, outside the knowability direction.
+
+**Two pipelines.** The two authors built independent pipelines during the sprint and ran them on overlapping models:
+
+| | Pipeline A (`src/`, `results/`) | Pipeline B (`pipeline_b/`) |
+|---|---|---|
+| Models | Qwen3-14B/8B/4B, Qwen2.5-7B/3B, Llama-3.1-8B, Llama-3.2-3B, Mistral-7B, Gemma-2-9B, SFT gate | Llama-3.1-8B, Qwen3-14B/8B, Gemma-2-9B, Qwen2.5-14B/7B, Mistral-7B, OLMo-2-7B, Phi-4 (J-lens also Qwen3-4B, Qwen2.5-3B) |
+| Inside | cross-domain (X) and cross-fitted (N) probes, fooling index, validity gate | synthetic probe with a decision-orthogonalised axis, **Jacobian lens** |
+| Calibration | leaked-answer anchor ('Today' = target date), graded leakage | leaked outcome (realised close appended) |
+| Mechanism | suffix / last-token / X-component patching, read-out gain | decision-token component patching (decline vs knowability components) |
+| Interventions | steering (matched random controls), neutral pushback | triage prompt vs placebo, decision-token steering |
+| Robustness | three extra models | two paraphrased templates; **crypto and weather** domains (Binance, Open-Meteo, 2026) |
+
+`results/pipeline_b_summary.json` collects every pipeline-B number the report quotes (`python src/pipeline_b_summary.py`); `src/make_fig_jlens.py` draws the J-lens figure. Pipeline B's own README, pre-registration (hashed, with addenda) and per-item outputs are in `pipeline_b/`.
 
 **Question.** An authoritative-looking indicator panel makes LLM agents commit to answers on questions nobody can know yet. When that happens, is the model *fooled*, meaning its internal representation that the question is unknowable disappears? Or is it *overriding*, meaning it still represents the question as unknowable and commits anyway?
 
@@ -39,6 +53,10 @@ python src/fof.py --model <m> --tag v5-<t> --phases act,xsteer2 --steer_layer 21
 python src/review_fixes.py && python src/analyze_v4.py && STEER_OUT=results/steer_v5_raw.json python src/steer_v3.py results/v5-*
 python src/make_figs_v4.py
 python src/build_report.py              # report/out/report.docx (official template); PDF via LibreOffice
+# pipeline B (see pipeline_b/README.md): runner, phase 2/3, J-lens, new domains
+python pipeline_b/code/build_newdomains.py    # crypto + weather items from public 2026 data
+MODELS=<hf id> DATA=fo_data2.json OUT=out python pipeline_b/code/fo_run.py ; python pipeline_b/code/fo_jlens.py
+python src/pipeline_b_summary.py && python src/make_fig_jlens.py   # numbers + J-lens figure used in the report
 ```
 
 ## Results layout
