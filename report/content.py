@@ -5,6 +5,8 @@ RF = json.load(open("results/review_fixes.json"))
 V4 = json.load(open("results/v4_summary.json")); V4m, DP = V4["v4"], V4["deep"]
 SV3 = json.load(open("results/steer_v3_raw.json"))
 SV5 = json.load(open("results/steer_v5_raw.json")) if os.path.exists("results/steer_v5_raw.json") else {}
+PB = json.load(open("results/pipeline_b_summary.json"))   # pipeline B (pipeline_b/): Jacobian lens, new domains
+JL, DOM = PB["jlens"], PB["domains"]
 ALL = ["qwen3-14b", "llama31-8b", "qwen3-8b", "qwen3-4b", "qwen25-7b", "qwen25-3b", "mistral-7b", "llama32-3b", "gemma2-9b", "gate-3b"]
 ORDER = [t for t in ALL if t in R and t in V4m and t in RF]
 NICE = {"qwen3-14b": "Qwen3-14B", "llama31-8b": "Llama-3.1-8B", "qwen3-8b": "Qwen3-8B", "qwen3-4b": "Qwen3-4B", "qwen25-3b": "Qwen2.5-3B",
@@ -133,22 +135,50 @@ def leak_table():
                     [f'{f2(b["leak_r25"]["p_answer"])} → {f2(b["leak_exact"]["p_answer"])}'])
     return rows
 
+JL_VALID = [m for m in JL if JL[m]["doubt"]["leak"] >= 70]                        # leak control works for the J-lens readout
+JL_BIG = ["Qwen3-14B", "Qwen2.5-14B", "Phi-4", "Llama-3.1-8B", "Qwen3-8B"]           # 8B and above
+def jl_rng(ms, key):
+    return rng([JL[m]["doubt"][key] for m in ms], lambda x: f"{x:.0f}")
+N["jl_big_panel"] = jl_rng(JL_BIG, "panel"); N["jl_valid_leak"] = jl_rng(JL_VALID, "leak")
+N["jl_fi_big"] = rng([JL[m]["fi_contrast"] for m in ("Llama-3.1-8B", "Qwen3-14B", "Qwen3-8B")])
+N["jl_leak_big"] = rng([JL[m]["leak_contrast"] for m in ("Llama-3.1-8B", "Qwen3-14B", "Qwen3-8B")])
+N["dom_gap"] = rng([100 * v["gap_change_rel"] for d in DOM.values() for v in d.values()], lambda x: f"+{x:.0f}%")
+N["dom_panel"] = rng([v["jlens"]["doubt"]["panel"] for d in DOM.values() for v in d.values()], lambda x: f"{x:.0f}")
+N["dom_leak"] = rng([v["jlens"]["doubt"]["leak"] for d in DOM.values() for v in d.values()], lambda x: f"{x:.0f}")
+def jl_reading(m):
+    d = JL[m]["doubt"]
+    if d["leak"] < 70: return "leak control fails: no reading"
+    if d["panel"] >= 85: return "demoted like the leak: fooled"
+    if d["panel"] >= 50: return "partly demoted"
+    return "not demoted: overriding"
+def jl_table():
+    order = ["Qwen3-14B", "Qwen2.5-14B", "Phi-4", "Llama-3.1-8B", "Qwen3-8B", "Qwen2.5-7B", "OLMo-2-7B", "Qwen3-4B", "Qwen2.5-3B", "Gemma-2-9B", "Mistral-7B-v0.3"]
+    return [[m, f'{JL[m]["doubt"]["panel"]:.0f} / {JL[m]["doubt"]["leak"]:.0f}', f'{f2(JL[m]["fi_contrast"])} / {f2(JL[m]["leak_contrast"])}',
+             f'{f2(JL[m]["fi_unc"])} / {f2(JL[m]["leak_unc"])}', jl_reading(m)] for m in order]
+def dom_table():
+    rows = []
+    for d, mods in DOM.items():
+        for m, v in mods.items():
+            rows.append([d, m, f'{pc(v["commit_L0"])} → {pc(v["commit_L2"])} ({pc(v["commit_fab"])})', f2(v["ask_unk_L2"]),
+                         f'+{100 * v["gap_change_rel"]:.0f}%', f'{v["jlens"]["doubt"]["panel"]:.0f} / {v["jlens"]["doubt"]["leak"]:.0f}'])
+    return rows
+
 GITHUB_URL = "https://github.com/Sam-wiz/fool-or-overriding"
-TITLE = "Fooled or Overriding? A Leaked-Answer Calibration Shows the Unknowability Signal in LLM Agents Is Evidence-Blind"
+TITLE = "Fooled or Overriding? Linear Probes Are Evidence-Blind, but a Calibrated Jacobian Lens Shows Larger LLM Agents Override"
 AUTHORS = [("Samrudh Jain", "Independent researcher"), ("Pranav Aggarwal", "Independent researcher")]
 
 ABSTRACT = (
-    "Authoritative-looking indicator panels make LLM agents commit to calls on unknowable outcomes, and fabricated panels work about as well as real data "
+    "Authoritative-looking panels make LLM agents commit on unknowable outcomes, and fabricated panels work about as well as real data "
     "(Aggarwal, 2026). Is the agent fooled, losing its internal sense that the question is unknowable, or overriding, keeping it and committing anyway? "
-    f"In {NMW} open-weight models (3–14B) on 40 matched stock questions we measure the action, the model's answer when asked, and layer-wise linear probes "
-    f"checked with a positive control. In {N['n_panel']} models panels raise commitment from 0% to as much as {N['commit_max']}, while models still call the questions unknowable "
-    f"and the probes move only part of the way (median deep-layer fooling index at most {N['fi_max']}), which looks like overriding. A leaked-answer calibration "
-    f"overturns this reading. When the panel also shows the realised price and the date has passed, {N['n_use']} models commit on {N['post_commit']} and mostly answer correctly, yet the "
-    f"probes reach only {N['fipost_X']} and most still call the question unknowable. Measured against this reference, panels move the probe "
-    f"{N['ratio_all']} as far as the real answer does. The signal mostly encodes the question's form, so it cannot separate fooled from overriding. Activation patching "
-    f"locates the panel's effect: restoring no-panel activations over the question tokens restores ≥90% of abstention by {N['patch_suffix']} depth, while the probe direction "
-    "alone restores little before late layers. Steering cuts commitment in two models, and a neutral 'Are you sure?' shows that earlier answer-abandonment came from knowability wording. "
-    "Probes and self-reports of doubt should be calibrated against answer-revealing contexts before they are trusted as monitors."
+    f"Two independent pipelines study 12 open-weight models (3–14B) and a decline-tuned gate on 40 matched stock questions, reading the action, the model's answer when asked, and its internals. "
+    f"Panels raise commitment from 0% to as much as {N['commit_max']}. Uncalibrated, layer-wise linear probes say overriding (median deep-layer fooling index at most {N['fi_max']}). "
+    f"A leaked-answer calibration overturns that reading: when the panel also reveals the realised price, models commit and mostly answer correctly, yet the probes move only "
+    f"{N['fipost_X']} of the way and the models still call the question unknowable. Probes and self-report are evidence-blind. A Jacobian-lens readout of the decision state "
+    f"is not: the leaked answer pushes 'uncertain', 'unpredictable', 'unknown' and 'unclear' {N['jl_valid_leak']}% of the way down the vocabulary in every model where the "
+    f"control works, while the panel leaves them near the top in every model of 8B and above ({N['jl_big_panel']}% of the way down), and in two new real-data domains (crypto, weather). "
+    "By this calibrated readout larger models override, while OLMo-2-7B, which rarely calls the question unknowable, is fooled. Activation patching locates the panel's "
+    "effect in the question tokens mid-network, outside the knowability direction; a one-paragraph triage prompt removes the commitments. Evaluations and monitors should "
+    "calibrate internal readouts against an answer-revealing context before reading them as beliefs."
 )
 
 BODY = [
@@ -160,15 +190,19 @@ BODY = [
     ("p", "That leaves open the question that matters for fixing it. Is the model **fooled**, so that the packaging corrupts what it represents about the question and the fix is "
           "better evidence handling? Or is it **overriding**: it still represents 'this is unknowable' and commits anyway, so the fix is an action-level gate, perhaps monitored "
           "from the inside? This is the sprint's Track 1 question of how large the gap is between what a model implies by acting and what it represents."),
-    ("p", "We measure three channels on every item: **inside** (linear probes for unknowability at every layer), **words** (the model's answer when asked whether the question is "
-          "knowable) and **action** (ANSWER / CALL_TOOL / DECLINE under the original agentic prompt). Our contributions:"),
+    ("p", "We measure three channels on every item: **inside** (linear probes for unknowability at every layer, and a Jacobian-lens readout of what the decision state disposes "
+          "the model to say), **words** (the model's answer when asked whether the question is knowable) and **action** (ANSWER / CALL_TOOL / DECLINE under the original agentic prompt). "
+          "The two authors built two pipelines independently (A: S.J.; B: P.A., code in pipeline_b/) and ran them on overlapping models. Our contributions:"),
     ("num", [
         f"**Behaviour in {NMW} open models.** In {N['n_panel']} models panels raise commitment on unknowable questions, by up to {N['commit_max'].rstrip('%')} points ({N['n_full']} reach ≥95%); fabricated panels "
         f"work as well as real ones and an irrelevant panel mostly does not. Gemma-2-9B swaps correct declines for useless tool calls, and three newer models ({N['resist_names']}) resist panels entirely.",
         f"**A calibration that changes the conclusion.** Uncalibrated, the probes say *overriding*: the median deep-layer fooling index is {N['fi_N']} (cross-fitted) and {N['fi_X']} (cross-domain). "
         f"We add the missing 'fooled' reference, the same question with the answer in the panel. The {N['n_use']} models that act on it answer it, mostly correctly, but the probes move only to {N['fipost_X']} "
-        "and the self-report barely moves. Both mostly encode the question's form. Fooled and overriding are therefore not separable with this signal, "
-        "and we withdraw the 'overriding' reading of our own uncalibrated result.",
+        "and the self-report barely moves. Both mostly encode the question's form, so fooled and overriding are not separable with them.",
+        f"**A readout that passes the calibration.** A Jacobian lens (Gurnee et al., 2026) at the decision token is not evidence-blind: the leaked answer pushes the doubt words "
+        f"('uncertain', 'unpredictable', 'unknown', 'unclear') {N['jl_valid_leak']}% of the way down the vocabulary in every model where the control works. Measured with it, the panel "
+        f"leaves them near the top ({N['jl_big_panel']}%) in all five models of 8B and above, on stocks and on two new real-data domains: these models override. OLMo-2-7B is fooled; "
+        "two smaller models are partly fooled.",
         "**Where the panel acts.** Activation patching shows that the panel's effect is carried at the question and instruction tokens in the middle of the network, largely outside "
         "the probe direction, which the decision does read in late layers.",
         "**Interventions with controls.** Steering along the direction at a layer that passes the validity gate reduces commitment beyond random directions in two models only. "
@@ -210,6 +244,13 @@ BODY = [
           "it to where a knowable question with the panel sits. A layer is **valid** if the probe separates knowable from unknowable L2 questions (AUROC ≥ 0.8) and the positive control moves "
           "it toward unknowable (bootstrap 95% CI > 0). Per model we report the median FI over valid layers in the second half of the network, and the pre-registered per-layer rule "
           "(Overriding if the FI CI's upper bound < 0.25, Fooled if the lower bound > 0.5). The **calibrated ratio** is FI(panel) / FI(answer shown), the median over valid deep layers. CIs are case bootstraps (1,000 resamples)."),
+    ("p", "**Pipeline B, Jacobian lens and new domains.** Pipeline B (pipeline_b/) runs the same prompt and parser on Llama-3.1-8B, Qwen3-14B, Qwen3-8B, Gemma-2-9B, Qwen2.5-7B, "
+          "Mistral-7B-v0.3, Qwen2.5-14B, OLMo-2-7B and Phi-4 (14B), with forced-choice and greedy actions, the triage classification asked in words, a probe trained on synthetic items, "
+          "and a **leaked outcome** (the unknowable question word for word, with the realised close appended; 'Today' unchanged). The **Jacobian lens** (Gurnee et al., 2026) maps a "
+          "residual vector through the average Jacobian of the rest of the network (64 wikitext sequences) onto the vocabulary. We decode the condition-mean change of the decision-token "
+          "state (panel − no data; leak − panel; knowable − unknowable) over the full vocabulary at 70% and 85% depth (fixed in advance) and report where four doubt words land, as % of "
+          "the way down the vocabulary. **New domains** (B): crypto (10 coins × 4 dates, Binance public daily candles, close 10 days ahead) and weather (10 cities × 4 dates, Open-Meteo "
+          "archive, maximum temperature 14 days ahead), each with every arm above, 2026 data. The J-lens and the new domains were added on the last day (post-hoc)."),
     ("p", "**Mechanism tests (post-review).** *Patching*: we run the panel (L2) prompt and replace, at one layer, the hidden states of the shared suffix (the question and instructions "
           "after the data block, identical tokens in the L0 and L2 prompts) with those from the no-panel run: the whole suffix, the last token only, or only the X component at the last "
           "token. We report the fraction of the L0–L2 gap in abstain log-odds restored. *Read-out gain*: the change in abstain log-odds when one class gap along X is added at the last "
@@ -230,11 +271,6 @@ BODY = [
      "Table 1. Commitment (ANSWER) on the 40 unknowable stock questions by evidence level (n = 40 per cell; Wilson 95% CI half-width ≤ ±15 points). 'Answer shown': the panel also reports the realised "
      "close and 'Today' is that date; correct = share of directional calls (PROBABILITY_YES ≠ 50) that match the realised move. Always-NO scores 72.5% on knowable L2 questions. Last column: mean P(unknowable) when asked directly.",
      [1.15, 0.38, 0.38, 0.5, 0.45, 0.8, 0.7, 0.75, 1.05]),
-    ("fig", "report/figs/fig1_channels_v4.png", 6.3,
-     "Figure 1. Three channels for the 40 unknowable stock questions across evidence levels, with the leaked-answer anchor (yellow). Red: commitment (solid) and decline (dashed). Blue: P(unknowable) "
-     "when asked. Green: X-probe position averaged over valid deep layers, scaled so that 1 = unknowable with no data and 0 = knowable with the panel. Purple star: positive control. With the answer "
-     "shown, the action flips to ANSWER and the answers are mostly right, but the probe moves only modestly and the words barely move."),
-
     ("h3", "4.2 The uncalibrated reading: 'overriding'"),
     ("p", f"Both probes separate knowable from unknowable L2 questions (median AUROC ≈ 1.00 over valid layers) and the positive control moves them strongly. Adding the panel moves the unknowable "
           f"question only a little: median deep-layer FI {N['fi_N']} with N and {N['fi_X']} with X (Table 2). Under the pre-registered per-layer rule, {N['ci_O']} of {N['ci_tot']} valid deep layers "
@@ -257,53 +293,96 @@ BODY = [
           "so they do not remove the lexical confound."),
     ("p", "**What the calibration implies.** The linear 'unknowability' signal, like the model's self-report, mainly encodes the *form* of the question (a future-dated forecast), not whether the "
           "context makes it answerable. A small FI under the panel is therefore not evidence that the model keeps its doubt, and a ratio near 1 is not strong evidence that it is fooled: the "
-          "scale's dynamic range is too small. Fooled vs overriding is not identifiable with this signal, and the 'overriding' reading of Section 4.2 does not survive."),
+          "scale's dynamic range is too small. Fooled vs overriding is not identifiable with this signal, and the 'overriding' reading of Section 4.2 does not survive on these probes. Section 4.4 asks whether a different readout does better."),
 
-    ("h3", "4.4 Where the panel acts"),
+    ("h3", "4.4 A readout that passes the calibration: the Jacobian lens"),
+    ("p", f"A probe direction is one number per item; the J-lens asks what the whole decision state disposes the model to say. Decoded, the knowable-minus-unknowable change reads as "
+          "uncertainty against ease ('uncertain, unsure, unpredictable, unknown' vs 'straightforward, simple, immediately, already, solved'), and leaking the outcome removes "
+          "uncertainty ('Unknown, unclear, TBD, unsure' at the bottom; 'correct, confirmed, already' at the top). The panel instead adds a forecasting or analysis frame "
+          "('predictions, estimated' in Llama; 'calculated, analysis' in Qwen3-14B). Figure 1 shows the calibration directly. In every model whose leak control works, the leaked "
+          f"answer pushes the four doubt words {N['jl_valid_leak']}% of the way down the vocabulary. The panel, real or fabricated, leaves them at {N['jl_big_panel']}% in all five models of "
+          "8B and above (Qwen3-14B, Qwen2.5-14B, Phi-4, Llama-3.1-8B, Qwen3-8B) and in Qwen2.5-3B: these models keep the doubt while the action changes. It demotes them partly in "
+          "Qwen3-4B (78%) and Qwen2.5-7B (65%) and as far as the leak in OLMo-2-7B (91% vs 89%), the one committer that rarely calls the question unknowable (P = 0.20): OLMo is fooled. "
+          "For Gemma-2-9B and Mistral-7B the leak itself fails, so the J-lens gives no reading there. On an item score (doubt minus forecast words), the panel moves the question "
+          f"{N['jl_fi_big']} of the way toward its knowable twin in Llama-3.1-8B, Qwen3-14B and Qwen3-8B, against {N['jl_leak_big']} for the leak, two to four times the range of the "
+          "linear probes (Appendix Table 5)."),
+    ("fig", "report/figs/fig5_jlens.png", 5.8,
+     "Figure 1. Jacobian-lens calibration (pipeline B). Where the change of the decision-token state puts the doubt words ('uncertain', 'unpredictable', 'unknown', 'unclear'), as % of the way "
+     "down the vocabulary, at 70% and 85% depth (fixed in advance). Blue: leaked answer (the calibration: it should demote them). Orange: panel, real and fabricated pooled. Grey: the leak "
+     "control fails. Right: the same for the two new domains."),
+
+    ("h3", "4.5 Two more real-data domains"),
+    ("p", f"Rebuilt with every arm on crypto and weather (Appendix Table 6), the pattern holds wherever the panel moves behaviour: Llama-3.1-8B commits on 100% (crypto) and 40% "
+          f"(weather) with real panels and as much with fabricated ones; asked, models still call the question unknowable; B's decision-orthogonalised probe gap grows ({N['dom_gap']}); and the "
+          f"panel leaves the doubt words at {N['dom_panel']}% while the leak pushes them to {N['dom_leak']}%. Behaviour is domain-dependent: Qwen3-14B commits on 78% of crypto items "
+          "but on no weather item, where the panel instead raises its decline probability."),
+
+    ("h3", "4.6 Where the panel acts"),
     ("p", f"Patching (Figure 2; {N['n_patch']} models) locates the panel's effect. Replacing the panel run's activations over the question-and-instruction tokens with no-panel activations restores "
           f"≥90% of abstention from {N['patch_suffix']} relative depth onward: by mid-network, the panel's influence has been written into the question tokens. Patching the last token alone "
           f"restores half of it only from {N['patch_last']} depth. Patching only the X component at the last token restores at most {N['patch_x_mid']} up to mid-depth and {N['patch_x_late']} in the "
           "final layers. The decision does read the X direction late: adding one class gap along X at three-quarter depth raises abstain log-odds by "
           f"{N['fd_late_L0']} nats without a panel and {N['fd_late_L2']} with it (mid-depth: {N['fd_mid']}). So the panel does not cut the direction's read-out; it acts mostly through other "
-          "features, moved from the data tokens into the question tokens in the middle layers, which the late decision then integrates."),
-    ("fig", "report/figs/fig2_patch.png", 6.0,
+          "features, moved from the data tokens into the question tokens in the middle layers, which the late decision then integrates. Pipeline B's component patching at the decision "
+          "token agrees: copying the no-panel state restores the no-panel action (Llama-3.1-8B from layer 16, Qwen3-14B from layer 25), the within-class decline component alone "
+          "restores declining (Qwen3-8B 0.60 → 0.00–0.02 P(ANSWER)), and the decision-orthogonalised knowability component alone does nothing in any of the three committers tested."),
+    ("fig", "report/figs/fig2_patch.png", 5.4,
      "Figure 2. Activation patching from the no-panel (L0) run into the panel (L2) run of each unknowable question, at the decision token. y = fraction of the L0–L2 gap in abstain log-odds "
      "restored (1 = full abstention restored). Black: all shared question/instruction tokens; red: last token only; green dashed: only the X-direction component at the last token. n = 40 per point."),
 
-    ("h3", "4.5 Steering along the direction"),
+    ("h3", "4.7 Steering along the direction, and a prompt-level gate"),
     ("p", "Adding the direction at a valid layer (α = +8, in multiples of the class-mean gap; in the two re-run models this is STEER_REL of the mean residual-stream norm) moves only some models off ANSWER "
-          "beyond same-norm random directions (Table 3). Llama-3.1-8B falls from 100% to 18% commitment, mostly to DECLINE; Qwen2.5-3B falls from 48% to 0%, but to CALL_TOOL, which is no better than "
+          "beyond same-norm random directions (Appendix Table 3). Llama-3.1-8B falls from 100% to 18% commitment, mostly to DECLINE; Qwen2.5-3B falls from 48% to 0%, but to CALL_TOOL, which is no better than "
           "committing since the tool cannot see the future. Knowable questions remain answered, but at lower accuracy (Llama 100% → 75%, close to the 72.5% always-NO baseline; Qwen3-8B 78% → 28%). "
-          "PER_MODEL_EXTRA Given Section 4.4 this is expected: the direction is read late, and the panel's effect runs largely elsewhere."),
-    ("table", ["Model", "layer", "commit unk+panel: base → +dir (random)", "commit unk+fabricated: base → +dir (random)", "knowable answered: +dir (random)", "unk, no data: base → −dir (random)"],
-     steer_table(),
-     "Table 3. Steering with matched controls (n = 40 per cell; random = mean of three same-norm random directions; α = ±8). Base = the unsteered run in the same batch setup (batch-dependent bf16 "
-     "numerics shift some greedy decisions by a few items). Layer: n_layers//2 if the X direction is valid there, else the first valid layer above it. Models that never commit with the panel are omitted.",
-     [1.15, 0.4, 1.25, 1.25, 0.95, 1.15]),
-
-    ("h3", "4.6 Pushback, with a neutral control"),
+          "PER_MODEL_EXTRA Given Section 4.6 this is expected: the direction is read late, and the panel's effect runs largely elsewhere. A prompt-level gate works better (pipeline B): "
+          "the original paper's one-paragraph triage system prompt brings P(DECLINE) on unknowable items with the real or fabricated panel to 0.99–1.00 in Llama-3.1-8B, Qwen3-8B and "
+          "Qwen3-14B with answerable items untouched, while a matched-length placebo raises commitment (Llama 0.82 → 0.91). It does not help OLMo-2-7B, the model the J-lens calls fooled."),
+    ("h3", "4.8 Pushback, with a neutral control"),
     ("p", "With the original, knowability-laden wording, one 'Are you sure?' made several models abandon their committed knowable answers (Llama-3.1-8B LLAMA_ORIG, Qwen3-8B QW8_ORIG, Qwen2.5-3B "
           "QW3_ORIG, gate GATE_ORIG). With a **neutral** 'Are you sure?', Llama-3.1-8B abandons LLAMA_NEU and Qwen3-8B QW8_NEU: the effect came from the wording, not the challenge. "
           "Llama-3.2-3B (LL32_ORIG vs LL32_NEU) and Mistral-7B (MIS_ORIG vs MIS_NEU) show the same pattern. The small Qwen2.5-3B models still fold (QW3_NEU, gate GATE_NEU), Qwen2.5-7B folds more under the neutral wording (Q7_ORIG vs Q7_NEU), and Gemma-2-9B starts *committing* on unknowable panel items (0% → GEMMA_NEU). Inside, "
           "the X-probe gap between unknowable and knowable L2 questions shrinks after either wording (median ratio PUSH_RANGE over layers that stay valid at the new position), even where behaviour "
           "does not change. Given Section 4.3, we read this as both prompts now sharing an appended turn, not as a belief update."),
 
-    ("h3", "4.7 Monitors"),
-    ("p", "Among items an agent chose to ANSWER (original seven models), flagging the unknowable ones works with the X probe (AUROC 1.00 for most models) and almost as well by simply asking the model (0.96–1.00); stated "
-          "confidence does worse (0.48–0.94). On these lexically distinct questions TF-IDF on the question alone also scores 1.00, so these monitors detect question type. The leaked-answer "
-          "result shows they would flag an answerable question as unknowable just as confidently. Our pre-registered prediction that the probe would beat asking is not supported."),
-
     ("h2", "5. Discussion and Limitations"),
-    ("p", f"**Implications.** In the models that panels move, they change what agents do far more than any measure we have of what they represent; newer models in our set resist panels altogether. But the measures themselves turn out to be "
-          "evidence-blind: the probe and the self-report track the form of the question and barely respond when context truly answers it. Three consequences follow. (1) For evaluations, "
-          "a model's statement or probe reading that 'this is unknowable' is not evidence that it is withholding a belief when it acts; probes used as honesty or doubt monitors need an "
-          "answer-revealing calibration condition, the counterpart of our positive control in the other direction. (2) The panel's effect is real and localisable: it is written into the "
-          "question tokens mid-network, largely outside the unknowability direction, which suggests interventions should target how evidence is routed into the question representation, or "
-          "the action itself, rather than amplifying a doubt direction. (3) The SFT gate fixes behaviour bluntly: it never commits on unknowable items, calls knowable questions unknowable too, and abandons "
-          "correct answers under pushback; a useful gate must be checked on knowable accuracy."),
-    ("h3", "Limitations"),
+    ("p", "**Implications.** Panels change what agents do far more than the standard measures of what they represent. Those measures, linear probes and the model's own "
+          "self-report, turn out to be evidence-blind: they track the form of the question and barely respond when context truly answers it. A Jacobian-lens readout of the decision "
+          "state passes the same calibration, and by it the larger models override: the panel adds a reason to act without removing the words of doubt, while a real answer removes "
+          "them. Small models are less safe: OLMo-2-7B is fooled and two others partly. Four consequences follow. (1) A model's statement or probe reading that 'this is unknowable' is "
+          "not evidence of withheld belief unless the readout is calibrated against an answer-revealing context; we recommend that check for any honesty or doubt monitor. (2) Evals "
+          "should score actions against calibrated internal states on matched answerable twins, with fabricated and irrelevant panels as standard arms. (3) The panel's effect is "
+          "written into the question tokens mid-network, outside the knowability direction, so fixes belong at the action: a one-paragraph triage prompt removed the commitments in the "
+          "overriding models, though not in the fooled one. (4) The SFT gate fixes behaviour bluntly: it calls knowable questions unknowable too, and must be checked on knowable accuracy."),
+    ("p", "**Limitations and future work** (details in Appendix A). Twelve 3–14B models; one main domain plus two replications; several probe choices, the leaked-answer anchor and the "
+          "J-lens are post-hoc. Next: head-level path patching from data to question tokens, J-lens and SAE features at frontier scale, and consistency training that ties the action "
+          "to a calibrated judgement, checked on knowable accuracy."),
+    ("h2", "6. Conclusion"),
+    ("p", "Authoritative panels make open-weight agents commit on unknowable questions. Linear probes and the model's own words cannot settle whether they are fooled: both "
+          "barely move even when the answer is in front of the model. Calibrated against that answer, a Jacobian-lens readout can: models of 8B and above keep their doubt and act "
+          "anyway, while a small model is truly fooled. Before reading a probe or a self-report as an agent's belief, calibrate it against a context that actually answers the question."),
+
+    ("h2", "Code and Data"),
     ("bullets", [
-        f"**Scale.** {NMW.capitalize()} open models of 3–14B parameters, greedy decoding, one domain (40 NSE cases) for the internal tests; n = 40 per cell. Frontier models were tested only behaviourally, in the original paper.",
+        "Code repository: GITHUB_URL. Pipeline A is in src/ and results/; pipeline B (nine-model runner, leaked-outcome control, component patching, triage, Jacobian lens, crypto and weather domains) is in pipeline_b/, with its own README. Every cached generation and probe score is included, and scripts regenerate each table and figure on a CPU.",
+        "Data: the evaluation cases, agentic prompt and SFT recipe are pre-existing work from Aggarwal (2026), https://github.com/Pranav-1100/confidence-calibration-evaluation (MIT), "
+        "marked as such in the README. New items (fabricated panels, the positive control, leaked-answer anchors, graded leakage, matched pairs, the ask prompt, pushback variants) are generated by src/fof.py and src/deep.py.",
+    ]),
+    ("h2", "Author Contributions"),
+    ("p", "P.A. authored the original behavioural study, cases, prompt and SFT recipe (pre-existing). S.J. designed and ran pipeline A (probes, controls, leaked-answer calibration, patching, steering, "
+          "pushback) and wrote the report. P.A. designed and ran pipeline B (nine-model runner, leaked-outcome control, decision-token component patching, triage prompt, Jacobian lens, crypto and "
+          "weather domains) and merged it into the report. Both authors reviewed the manuscript."),
+    ("h2", "References"),
+    ("refs", None),
+    ("pagebreak",),
+    ("h2", "Appendix A. Limitations and Dual-Use / Ethical Considerations"),
+    ("p", f"**What this does and does not establish.** For twelve open models of 3–14B parameters, we establish that panels change actions; that linear unknowability probes and the model's "
+          "self-report barely respond even when context answers the question; that a Jacobian-lens readout does respond, and by it models of 8B and above keep their doubt under the panel "
+          "(on three domains) while OLMo-2-7B does not; and that the panel's effect on the decision is carried at the question tokens mid-network. We do not establish behaviour at frontier "
+          "scale, that the J-lens doubt words are the mechanism the model uses, or a deployable fix beyond the triage prompt."),
+    ("bullets", [
+        "**Scale.** Twelve open models of 3–14B parameters and a gate, greedy decoding, 40 cases per domain (stocks; crypto and weather in three models); n = 40 per cell. Frontier models were tested only behaviourally, in the original paper.",
+        "**Jacobian lens.** Post-hoc and from pipeline B only; 64 corpus sequences (the original method uses more) and a finite-difference readout; one four-word doubt set fixed in advance. "
+        "B's leak keeps 'Today' unchanged, unlike A's anchor, so the two calibrations are similar but not identical. The leak control fails for Gemma-2-9B and Mistral-7B, so they get no J-lens reading.",
         "**Post-hoc choices.** The pre-registered synthetic probe failed validity; the X and N probes, validity gate, deep-half aggregation, leaked-answer anchor, patching, neutral pushback and "
         "valid-layer steering were added afterwards (Appendix B). Adjacent layers are correlated, so per-layer counts overstate the evidence.",
         "**The anchor is imperfect.** 'Answer shown' keeps the future-tense wording of the question; a probe that reads tense would stay put by design. That is part of the finding (the "
@@ -311,32 +390,6 @@ BODY = [
         "**One linear direction per probe.** Evidence-blindness is shown for difference-of-means directions; other features (sparse-autoencoder features, nonlinear probes) might track answerability.",
         "**Steering and patching are coarse.** Steering at one strength and one layer per model; patching at the decision token only, without head-level attribution.",
     ]),
-    ("h3", "Future Work"),
-    ("p", "Head-level path patching from the data tokens to the question tokens; sparse-autoencoder features for 'future-dated' versus 'answerable from context'; a two-axis probe (form vs "
-          "available evidence); conditional steering applied only when a panel is present; and consistency training that ties the action to an evidence-sensitive judgement, "
-          "checked on knowable accuracy."),
-
-    ("h2", "6. Conclusion"),
-    ("p", "Authoritative panels make open-weight agents commit on unknowable questions. Whether they are fooled or overriding cannot be settled with the standard tools: the internal "
-          "unknowability signal and the model's own words barely move even when the answer is placed in front of the model and used. The panel's effect is real, mid-network and largely "
-          "outside that signal. Before reading a probe or a self-report as an agent's belief, calibrate it against a context that actually answers the question."),
-
-    ("h2", "Code and Data"),
-    ("bullets", [
-        "Code repository: GITHUB_URL. It contains all sprint code, every cached generation and probe score (results/*/rows.json), and scripts that regenerate each table and figure on a CPU.",
-        "Data: the evaluation cases, agentic prompt and SFT recipe are pre-existing work from Aggarwal (2026), https://github.com/Pranav-1100/confidence-calibration-evaluation (MIT), "
-        "marked as such in the README. New items (fabricated panels, the positive control, leaked-answer anchors, graded leakage, matched pairs, the ask prompt, pushback variants) are generated by src/fof.py and src/deep.py.",
-    ]),
-    ("h2", "Author Contributions"),
-    ("p", "P.A. authored the original behavioural study, cases, prompt and SFT recipe (pre-existing). S.J. designed and ran the sprint experiments (probes, controls, calibration, patching, steering, pushback) "
-          "and wrote the report. Both authors reviewed the manuscript."),
-    ("h2", "References"),
-    ("refs", None),
-    ("pagebreak",),
-    ("h2", "Appendix A. Limitations and Dual-Use / Ethical Considerations"),
-    ("p", f"**What this does and does not establish.** For {NMW} open models of 3–14B parameters on one stock-question set, we establish that panels change actions, that a linear "
-          "unknowability signal and the model's self-report barely respond even when context answers the question, and that the panel's effect on the decision is carried at the question tokens in "
-          "the middle of the network. We do not establish whether the models are fooled or overriding, behaviour at frontier scale, or a deployable fix."),
     ("p", "**Dual use.** Knowing that packaging moves actions could help someone design panels that push agents into confident calls, for example in automated trading or advice. The original "
           "behavioural paper already demonstrated this publicly; we add only that fabricated and real panels act alike inside. Steering directions that raise commitment need white-box access, "
           "which already allows fine-tuning. We think the defensive value (calibrated monitors, evals that compare actions with internal states, action-level gates) outweighs this."),
@@ -348,20 +401,44 @@ BODY = [
           "(3) after the synthetic probe failed transfer, the X and N probes and the validity gate were added (post-hoc), and the deep-half median rule was fixed before the all-layer scan; (4) the "
           "steering layer (n_layers//2) and α grid were fixed before the steering runs; (5) matched random-direction controls were added after the first steering results. **Added after an external "
           "review, after all of the above:** (6) the leaked-answer anchor and graded leakage; (7) the neutral pushback; (8) patching and read-out gain; (9) steering at the first valid layer where "
-          "n_layers//2 failed the gate; (10) three more models (Qwen2.5-7B, Mistral-7B-v0.3, Llama-3.2-3B), run with the unchanged pipeline. Outcomes: the pre-registered Overriding prediction is "
+          "n_layers//2 failed the gate; (10) three more models (Qwen2.5-7B, Mistral-7B-v0.3, Llama-3.2-3B), run with the unchanged pipeline; (11) merging pipeline B, pre-registered separately (pipeline_b/PREREGISTRATION.md, hashed; addenda A and B before its main results, C post-hoc), whose Jacobian lens and crypto/weather domains were added on the last day, after all other results. Outcomes: the pre-registered Overriding prediction is "
           "supported by the uncalibrated rule but not by the calibration, which shows the rule cannot distinguish the hypotheses; probe beats stated confidence (supported in most models); probe "
           "beats TF-IDF on transfer (mixed: it beats full-prompt TF-IDF at 0.55 but not question-only TF-IDF at 0.91–0.99)."),
     ("h2", "Appendix C. Additional results"),
+    ("fig", "report/figs/fig1_channels_v4.png", 6.3,
+     "Figure 3. Three channels for the 40 unknowable stock questions across evidence levels, with the leaked-answer anchor (yellow). Red: commitment (solid) and decline (dashed). Blue: P(unknowable) "
+     "when asked. Green: X-probe position averaged over valid deep layers, scaled so that 1 = unknowable with no data and 0 = knowable with the panel. Purple star: positive control. With the answer "
+     "shown, the action flips to ANSWER and the answers are mostly right, but the probe moves only modestly and the words barely move."),
+
+    ("table", ["Model", "layer", "commit unk+panel: base → +dir (random)", "commit unk+fabricated: base → +dir (random)", "knowable answered: +dir (random)", "unk, no data: base → −dir (random)"],
+     steer_table(),
+     "Table 3. Steering with matched controls (n = 40 per cell; random = mean of three same-norm random directions; α = ±8). Base = the unsteered run in the same batch setup (batch-dependent bf16 "
+     "numerics shift some greedy decisions by a few items). Layer: n_layers//2 if the X direction is valid there, else the first valid layer above it. Models that never commit with the panel are omitted.",
+     [1.15, 0.4, 1.25, 1.25, 0.95, 1.15]),
+
     ("table", ["Model", "FI panel", "±25% range", "±8%", "±3%", "±1%", "exact", "P(ANSWER): ±25% → exact"],
      leak_table(),
      "Table 4. Graded leakage (X probe, median over valid deep layers; deep.py). The panel reports the target-date close as a range of half-width w × price ('Today' = target date). The probe barely "
      "changes with the information content, while P(ANSWER) sometimes does.",
      [1.25, 0.6, 0.65, 0.5, 0.5, 0.5, 0.5, 1.2]),
+    ("table", ["Model", "doubt words, % down: panel / leak", "FI doubt−forecast: panel / leak", "FI doubt only: panel / leak", "reading"],
+     jl_table(),
+     "Table 5. Jacobian lens, all eleven pipeline-B models (decision token). Doubt words = mean position of 'unpredictable', 'uncertain', 'unknown', 'unclear' in the decoded change, % of the "
+     "way down the vocabulary (0 = promoted, 100 = demoted), 70% and 85% depth. FI: fooling index of an item score built from 12 doubt and 12 forecast words (median over deep layers); the "
+     "doubt-minus-forecast score partly tracks the decision, so the rank readout is primary.",
+     [1.2, 1.1, 1.15, 1.1, 1.75]),
+    ("table", ["Domain", "Model", "commit: no data → panel (fabricated)", "asked P(unk)", "probe gap, thin → panel", "doubt words: panel / leak"],
+     dom_table(),
+     "Table 6. New real-data domains (pipeline B; 40 cases each; 2026 data). Probe gap: change in B's decision-orthogonalised unknowable-minus-answerable gap (positive = not fooled).",
+     [0.7, 1.1, 1.5, 0.75, 1.0, 1.0]),
     ("fig", "report/figs/fig2_depth.png", 5.6,
-     "Figure 3. Fooling index (panel) at every layer for the X (green) and N (purple) probes; filled points pass the validity gate. Green band < 0.25, red band > 0.5; clipped to [−0.5, 1.6]. "
+     "Figure 4. Fooling index (panel) at every layer for the X (green) and N (purple) probes; filled points pass the validity gate. Green band < 0.25, red band > 0.5; clipped to [−0.5, 1.6]. "
      "Early layers often sit in the 'fooled' zone; Section 4.3 shows the scale itself is compressed."),
     ("fig", "report/figs/fig4_push.png", 6.0,
-     "Figure 4. Commitment before and after the original (knowability-laden) 'Are you sure?' for unknowable and knowable L2 questions (n = 40 each)."),
+     "Figure 5. Commitment before and after the original (knowability-laden) 'Are you sure?' for unknowable and knowable L2 questions (n = 40 each)."),
+    ("p", "**Monitors.** Among items an agent chose to ANSWER (original seven models), flagging the unknowable ones works with the X probe (AUROC 1.00 for most models) and almost as well by simply asking the model (0.96–1.00); stated "
+          "confidence does worse (0.48–0.94). On these lexically distinct questions TF-IDF on the question alone also scores 1.00, so these monitors detect question type. The leaked-answer "
+          "result shows they would flag an answerable question as unknowable just as confidently. Our pre-registered prediction that the probe would beat asking is not supported."),
     ("p", "**Synthetic probe.** The pre-registered probe (layer chosen on synthetic validation data) reached validation AUROC 0.99–1.00 but stock-L2 AUROC as low as 0.22–0.64 in several models, "
           "so its fooling indices are uninterpretable. Text baselines: TF-IDF on the question alone separates knowable from unknowable with AUROC 1.00 on stock L2 and 0.91–0.99 on transfer. "
           "**Base vs instruct** (raw prompts, deep.py): base Qwen2.5-3B and Llama-3.1-8B do not follow the decision format and no layer passes the validity gate, so the comparison is inconclusive. "
@@ -380,6 +457,7 @@ REFS = [
     "Fanous, A. et al. (2025). SycEval: Evaluating LLM Sycophancy. arXiv:2502.08177.",
     "Ferrando, J., Obeso, O., Rajamanoharan, S. & Nanda, N. (2024). Do I Know This Entity? Knowledge Awareness and Hallucinations in Language Models. arXiv:2411.14257.",
     "Goldowsky-Dill, N., Chughtai, B., Heimersheim, S. & Hobbhahn, M. (2025). Detecting Strategic Deception Using Linear Probes. arXiv:2502.03407.",
+    "Gurnee, W., Sofroniew, N. et al. (2026). Verbalizable Representations Form a Global Workspace in Language Models. arXiv:2607.15495.",
     "Halawi, D., Denain, J.-S. & Steinhardt, J. (2023). Overthinking the Truth: Understanding how Language Models Process False Demonstrations. arXiv:2307.09476.",
     "Joswin, E., Medicherla, S., Mammen, P. M. et al. (2026). A Mechanistic View of Authority Hierarchy in LLM Sycophancy. arXiv:2607.00415.",
     "Kadavath, S. et al. (2022). Language Models (Mostly) Know What They Know. arXiv:2207.05221.",

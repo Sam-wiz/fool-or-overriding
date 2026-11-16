@@ -1,0 +1,18 @@
+{
+ "tfidf_word12": {
+  "transfer": 0.52,
+  "nse_L0": 0.0,
+  "nse_L1": 0.034,
+  "nse_L2": 0.084,
+  "nse_L2irr": 0.081,
+  "nse_L2fab": 0.06
+ },
+ "tfidf_char35": {
+  "transfer": 0.581,
+  "nse_L0": 0.003,
+  "nse_L1": 0.032,
+  "nse_L2": 0.341,
+  "nse_L2irr": 0.318,
+  "nse_L2fab": 0.301
+ }
+}
