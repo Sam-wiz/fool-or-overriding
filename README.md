@@ -1,7 +1,7 @@
 # Fooled or Overriding?
 
 Code and results for an Apart Research **AI x Epistemics Research Sprint** project (13–16 Nov 2026). Authors: Samrudh Jain and Pranav Aggarwal.
-Report: `report/out/Fooled_or_Overriding_Apart_AIxEpistemics.pdf` (built from `report/content.py` by `src/build_report.py`).
+Report: `report/out/Fooled_or_Overriding_Apart_AIxEpistemics.pdf` (official Apart template, built from `report/content.py` by `src/build_report.py`) and an arXiv-style preprint of the same text, `report/out/Fooled_or_Overriding_preprint.pdf` (`python src/build_arxiv.py`, needs Chrome).
 
 **Result in one line.** Panels make agents commit on unknowable questions; linear probes and the model's own self-report barely move even when the answer is placed in the panel (evidence-blind), but a Jacobian-lens readout of the decision state passes that calibration, and by it models of 8B and above keep their doubt and act anyway (overriding) while OLMo-2-7B is fooled; at 70B the panel no longer moves behaviour. Patching shows the panel acts through the question tokens mid-network, outside the knowability direction.
 

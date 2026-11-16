@@ -12,6 +12,7 @@
 /results/smoke-*/
 /report/out/*
 !/report/out/Fooled_or_Overriding_Apart_AIxEpistemics.pdf
+!/report/out/Fooled_or_Overriding_preprint.pdf
 /report/template.txt
 *.npy
 *.log
