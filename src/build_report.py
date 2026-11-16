@@ -56,12 +56,75 @@ def add_par(text, style="normal", bold=False, italic=False, size=None, align=Non
         if italic: r.italic = True
         if size: r.font.size = Pt(size)
     if align == "center": p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    elif style == "normal" and size is None: p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.space_after = Pt(space_after); p.paragraph_format.space_before = Pt(0)
     if style == "normal":
         p.paragraph_format.line_spacing = 1.0
         for r in p.runs:
             if r.font.size is None: r.font.size = Pt(BODY_PT)
     return p
+
+from docx.oxml import OxmlElement
+from docx.shared import RGBColor as _RGB
+CAP_PT = 8.5
+def add_caption(text, space_after=8, keep_next=False):
+    """'Table 1. ...' / 'Figure 1. ...' -> bold label, grey justified caption text."""
+    p = d.add_paragraph(style="normal")
+    m = re.match(r"((?:Table|Figure) \d+\.)\s*(.*)", text, re.S)
+    label, rest = (m.group(1), m.group(2)) if m else ("", text)
+    if label:
+        r = p.add_run(label + " "); r.bold = True; r.font.size = Pt(CAP_PT)
+    for tok in re.split(r"(\*\*[^*]+\*\*|\*[^*]+\*)", rest):
+        if not tok: continue
+        if tok.startswith("**"): r = p.add_run(tok[2:-2]); r.bold = True
+        elif tok.startswith("*"): r = p.add_run(tok[1:-1]); r.italic = True
+        else: r = p.add_run(tok)
+        r.font.size = Pt(CAP_PT); r.font.color.rgb = _RGB(0x33, 0x33, 0x33)
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    p.paragraph_format.space_after = Pt(space_after); p.paragraph_format.space_before = Pt(2)
+    p.paragraph_format.line_spacing = 1.0; p.paragraph_format.keep_with_next = keep_next
+    return p
+def _border(parent, tag, val="single", sz=4, color="000000"):
+    e = OxmlElement(f"w:{tag}"); e.set(qn("w:val"), val); e.set(qn("w:sz"), str(sz)); e.set(qn("w:space"), "0"); e.set(qn("w:color"), color)
+    parent.append(e)
+def style_table(tb, widths):
+    """booktabs-like: heavy top/bottom rules, rule under header, light row separators, no verticals; fixed full width."""
+    TEXT_W = 6.5
+    n = len(tb.columns)
+    widths = widths or [TEXT_W / n] * n
+    scale = TEXT_W / sum(widths); widths = [w * scale for w in widths]
+    tb.autofit = False
+    tblPr = tb._tbl.tblPr
+    for old in tblPr.findall(qn("w:tblBorders")): tblPr.remove(old)
+    b = OxmlElement("w:tblBorders")
+    _border(b, "top", sz=10); _border(b, "left", val="nil"); _border(b, "bottom", sz=10); _border(b, "right", val="nil")
+    _border(b, "insideH", sz=2, color="BFBFBF"); _border(b, "insideV", val="nil")
+    tblPr.append(b)
+    lay = OxmlElement("w:tblLayout"); lay.set(qn("w:type"), "fixed"); tblPr.append(lay)
+    tw = OxmlElement("w:tblW"); tw.set(qn("w:w"), str(int(TEXT_W * 1440))); tw.set(qn("w:type"), "dxa")
+    for old in tblPr.findall(qn("w:tblW")): tblPr.remove(old)
+    tblPr.append(tw)
+    jc = OxmlElement("w:jc"); jc.set(qn("w:val"), "center"); tblPr.append(jc)
+    grid = tb._tbl.tblGrid
+    for gc, w in zip(grid.findall(qn("w:gridCol")), widths): gc.set(qn("w:w"), str(int(w * 1440)))
+    for ri, row in enumerate(tb.rows):
+        for j, c in enumerate(row.cells):
+            c.width = Inches(widths[j])
+            tcPr = c._tc.get_or_add_tcPr()
+            va = OxmlElement("w:vAlign"); va.set(qn("w:val"), "center"); tcPr.append(va)
+            mar = OxmlElement("w:tcMar")
+            for side in ("top", "bottom"):
+                m_ = OxmlElement(f"w:{side}"); m_.set(qn("w:w"), "28"); m_.set(qn("w:type"), "dxa"); mar.append(m_)
+            for side in ("left", "right"):
+                m_ = OxmlElement(f"w:{side}"); m_.set(qn("w:w"), "60"); m_.set(qn("w:type"), "dxa"); mar.append(m_)
+            tcPr.append(mar)
+            if ri == 0:
+                shd = OxmlElement("w:shd"); shd.set(qn("w:val"), "clear"); shd.set(qn("w:color"), "auto"); shd.set(qn("w:fill"), "EDEDED"); tcPr.append(shd)
+                tb_ = OxmlElement("w:tcBorders"); _border(tb_, "bottom", sz=6); tcPr.append(tb_)
+            for pp in c.paragraphs:
+                pp.alignment = WD_ALIGN_PARAGRAPH.LEFT if j == 0 else WD_ALIGN_PARAGRAPH.CENTER
+                pp.paragraph_format.space_after = Pt(0); pp.paragraph_format.space_before = Pt(0); pp.paragraph_format.line_spacing = 1.0
+    trPr = tb.rows[0]._tr.get_or_add_trPr(); h = OxmlElement("w:tblHeader"); trPr.append(h)
 
 SUBS = {"STEER_TITLE": getattr(C, "ST2", {}).get("title", ""), "STEER_TEXT": getattr(C, "ST2", {}).get("text", "(pending)"),
         "PER_MODEL_EXTRA": getattr(C, "EXTRA_TEXT", ""), "GITHUB_URL": getattr(C, "GITHUB_URL", "https://github.com/<to-be-created>")}
@@ -88,20 +151,19 @@ for blk in C.BODY:
     elif kind == "fig":
         path, width, cap = blk[1], blk[2], blk[3]
         p = d.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.add_run().add_picture(path, width=Inches(width))
-        add_par(cap, size=8.5, space_after=8)
+        p.add_run().add_picture(path, width=Inches(width)); p.paragraph_format.keep_with_next = True
+        p.paragraph_format.space_before = Pt(4); p.paragraph_format.space_after = Pt(2)
+        add_caption(cap, space_after=8)
     elif kind == "table":
         header, rows, cap, widths = blk[1], blk[2], blk[3], (blk[4] if len(blk) > 4 else None)
-        capp = add_par(cap, size=8.5, space_after=2); capp.paragraph_format.keep_with_next = True
+        capp = add_caption(cap, space_after=3, keep_next=True)
         tb = d.add_table(rows=1 + len(rows), cols=len(header)); tb.style = d.styles["Table Grid"] if "Table Grid" in [s.name for s in d.styles] else tb.style
         for j, h in enumerate(header):
             c = tb.rows[0].cells[j]; c.text = ""; r = c.paragraphs[0].add_run(h); r.bold = True; r.font.size = Pt(7.5)
         for i, row in enumerate(rows):
             for j, v in enumerate(row):
                 c = tb.rows[i + 1].cells[j]; c.text = ""; r = c.paragraphs[0].add_run(str(v)); r.font.size = Pt(7.5)
-        if widths:
-            for row in tb.rows:
-                for j, w in enumerate(widths): row.cells[j].width = Inches(w)
+        style_table(tb, widths)
         from docx.oxml import OxmlElement
         for ri, row in enumerate(tb.rows):
             trPr = row._tr.get_or_add_trPr(); cs = OxmlElement("w:cantSplit"); trPr.append(cs)

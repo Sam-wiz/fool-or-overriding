@@ -3,7 +3,7 @@
 Code and results for an Apart Research **AI x Epistemics Research Sprint** project (13–16 Nov 2026). Authors: Samrudh Jain and Pranav Aggarwal.
 Report: `report/out/Fooled_or_Overriding_Apart_AIxEpistemics.pdf` (built from `report/content.py` by `src/build_report.py`).
 
-**Result in one line.** Panels make agents commit on unknowable questions; linear probes and the model's own self-report barely move even when the answer is placed in the panel (evidence-blind), but a Jacobian-lens readout of the decision state passes that calibration, and by it models of 8B and above keep their doubt and act anyway (overriding) while OLMo-2-7B is fooled; at 70B the panel no longer moves behaviour. Patching shows the panel acts through the question tokens mid-network, outside the knowability direction.
+**Result in one line.** Panels make agents commit on unknowable questions; linear probes and the model's own self-report barely respond even when the answer is placed in the panel, but a Jacobian-lens readout of the decision state does respond, and by it the models the panel moves keep their doubt and act anyway (overriding); models the panel does not move, including Llama-3.3-70B, keep it too, and OLMo-2-7B tentatively looks fooled. Patching shows the panel acts through the question tokens mid-network, outside the knowability direction.
 
 **Two pipelines.** The two authors built independent pipelines during the sprint and ran them on overlapping models:
 

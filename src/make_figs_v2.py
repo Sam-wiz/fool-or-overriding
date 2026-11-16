@@ -108,7 +108,7 @@ if pu:
                                         ("know_L2", C["know"], "knowable+panel: committed before"), ("know_L2", "#c4b5fd", "…after"))):
         key = "commit_before" if j % 2 == 0 else "commit_after"
         ax.bar(x + (j - 1.5) * w, [V[t]["push"].get(cond, {}).get(key, np.nan) for t in pu], w, color=c, label=lab)
-    ax.set_xticks(x); ax.set_xticklabels([NICE[t].replace("-Instruct", "").replace("-it", "").replace(" + ", "\n+ ") for t in pu], fontsize=6.8); ax.set_ylabel("commit rate"); ax.set_ylim(0, 1.05)
+    ax.set_xticks(x); ax.set_xticklabels([NICE[t].replace("-Instruct", "").replace("-it", "").replace(" + ", "\n+ ") for t in pu], fontsize=6.6, rotation=25, ha="right"); ax.set_ylabel("commit rate"); ax.set_ylim(0, 1.05)
     ax.legend(fontsize=6.3, ncol=4, frameon=False, loc="upper center", bbox_to_anchor=(0.5, 1.22))
     fig.savefig(f"{OUT}/fig4_push.png"); plt.close(fig)
 print("v2 figs ->", OUT, tags)
