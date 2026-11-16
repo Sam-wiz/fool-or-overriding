@@ -182,17 +182,16 @@ TITLE = "Fooled or Overriding? Probes Barely Respond to a Leaked Answer, but a J
 AUTHORS = [("Samrudh Jain", "Independent researcher"), ("Pranav Aggarwal", "Independent researcher")]
 
 ABSTRACT = (
-    "Authoritative-looking indicator panels make LLM agents commit on unknowable outcomes, and fabricated panels work about as well as real data (Aggarwal, 2026). "
-    "Is the agent fooled, losing its internal sense that the question is unknowable, or overriding, keeping it and committing anyway? "
-    f"We study 13 open-weight models (3–70B) and a decline-tuned gate on 40 matched stock questions, reading action, self-report and internals. "
-    f"Panels raise commitment from 0% to as much as {N['commit_max']}. Uncalibrated, layer-wise linear probes say overriding (median deep-layer fooling index at most {N['fi_max']}). "
-    f"A leaked-answer calibration overturns that reading: when the panel reveals the realised price, models commit and mostly answer correctly, yet the probes move only "
-    f"{N['fipost_X']} of the way and the models still call the question unknowable; probes and self-report respond only weakly to evidence. A Jacobian-lens rank readout of the "
-    f"decision state responds strongly (an item-level doubt score does not): the leaked answer pushes 'uncertain', 'unpredictable', 'unknown' and 'unclear' {N['jl_valid_leak']}% of the way down the vocabulary "
-    f"wherever the control works. In four of the six models the panel moves to commit, the panel leaves these words near the top ({N['jl_commit_panel']}%), also on crypto and weather "
-    "data, which suggests they override; Qwen3-4B is partly demoted, OLMo-2-7B looks fooled (tentatively), and unmoved models, including a 70B one, keep their doubt. "
-    "Activation patching places the panel's effect in the question tokens mid-network, outside the knowability direction, and the prior paper's triage prompt removes the "
-    "commitments. Monitors should calibrate internal readouts against an answer-revealing context."
+    "An LLM agent shown an official-looking indicator panel commits on questions nobody can answer, and a fabricated panel works as well as real data "
+    "(Aggarwal, 2026). Is the agent fooled, losing its internal sense that the question is unknowable, or overriding, keeping it and acting anyway? "
+    f"Across 13 open-weight models (3–70B) on 40 matched stock questions, panels raise commitment from 0% to as much as {N['commit_max']}. Uncalibrated, linear "
+    f"probes suggest overriding, but a leaked-answer calibration shows they cannot decide: with the realised price in the panel, models answer correctly while "
+    f"the probes move only {N['fipost_X']} of the way and the models still call the question unknowable. A Jacobian-lens rank readout of the decision state does "
+    f"respond: the leaked answer pushes 'uncertain', 'unpredictable', 'unknown' and 'unclear' {N['jl_valid_leak']}% of the way down the vocabulary. In four of the six "
+    f"models the panel moves to commit, the panel leaves them near the top ({N['jl_commit_panel']}%), also on crypto and weather data, which suggests overriding; "
+    "Qwen3-4B is partly demoted and OLMo-2-7B looks fooled, tentatively. Patching places the panel's effect in the question tokens, outside the knowability "
+    "direction, and a one-paragraph triage prompt removes the commitments. Internal readouts should be calibrated against an answer-revealing context before "
+    "they are read as beliefs."
 )
 
 BODY = [
