@@ -7,6 +7,7 @@ SV3 = json.load(open("results/steer_v3_raw.json"))
 SV5 = json.load(open("results/steer_v5_raw.json")) if os.path.exists("results/steer_v5_raw.json") else {}
 PB = json.load(open("results/pipeline_b_summary.json"))   # pipeline B (pipeline_b/): Jacobian lens, new domains
 JL, DOM = PB["jlens"], PB["domains"]
+S70 = PB["scale70b"]; JL["Llama-3.3-70B (4-bit)"] = S70["jlens"]
 ALL = ["qwen3-14b", "llama31-8b", "qwen3-8b", "qwen3-4b", "qwen25-7b", "qwen25-3b", "mistral-7b", "llama32-3b", "gemma2-9b", "gate-3b"]
 ORDER = [t for t in ALL if t in R and t in V4m and t in RF]
 NICE = {"qwen3-14b": "Qwen3-14B", "llama31-8b": "Llama-3.1-8B", "qwen3-8b": "Qwen3-8B", "qwen3-4b": "Qwen3-4B", "qwen25-3b": "Qwen2.5-3B",
@@ -136,7 +137,7 @@ def leak_table():
     return rows
 
 JL_VALID = [m for m in JL if JL[m]["doubt"]["leak"] >= 70]                        # leak control works for the J-lens readout
-JL_BIG = ["Qwen3-14B", "Qwen2.5-14B", "Phi-4", "Llama-3.1-8B", "Qwen3-8B"]           # 8B and above
+JL_BIG = ["Llama-3.3-70B (4-bit)", "Qwen3-14B", "Qwen2.5-14B", "Phi-4", "Llama-3.1-8B", "Qwen3-8B"]   # 8B and above
 def jl_rng(ms, key):
     return rng([JL[m]["doubt"][key] for m in ms], lambda x: f"{x:.0f}")
 N["jl_big_panel"] = jl_rng(JL_BIG, "panel"); N["jl_valid_leak"] = jl_rng(JL_VALID, "leak")
@@ -150,9 +151,9 @@ def jl_reading(m):
     if d["leak"] < 70: return "leak control fails: no reading"
     if d["panel"] >= 85: return "demoted like the leak: fooled"
     if d["panel"] >= 50: return "partly demoted"
-    return "not demoted: overriding"
+    return "not demoted: doubt kept"
 def jl_table():
-    order = ["Qwen3-14B", "Qwen2.5-14B", "Phi-4", "Llama-3.1-8B", "Qwen3-8B", "Qwen2.5-7B", "OLMo-2-7B", "Qwen3-4B", "Qwen2.5-3B", "Gemma-2-9B", "Mistral-7B-v0.3"]
+    order = ["Llama-3.3-70B (4-bit)", "Qwen3-14B", "Qwen2.5-14B", "Phi-4", "Llama-3.1-8B", "Qwen3-8B", "Qwen2.5-7B", "OLMo-2-7B", "Qwen3-4B", "Qwen2.5-3B", "Gemma-2-9B", "Mistral-7B-v0.3"]
     return [[m, f'{JL[m]["doubt"]["panel"]:.0f} / {JL[m]["doubt"]["leak"]:.0f}', f'{f2(JL[m]["fi_contrast"])} / {f2(JL[m]["leak_contrast"])}',
              f'{f2(JL[m]["fi_unc"])} / {f2(JL[m]["leak_unc"])}', jl_reading(m)] for m in order]
 def dom_table():
@@ -168,16 +169,16 @@ TITLE = "Fooled or Overriding? Linear Probes Are Evidence-Blind, but a Calibrate
 AUTHORS = [("Samrudh Jain", "Independent researcher"), ("Pranav Aggarwal", "Independent researcher")]
 
 ABSTRACT = (
-    "Authoritative-looking panels make LLM agents commit on unknowable outcomes, and fabricated panels work about as well as real data "
-    "(Aggarwal, 2026). Is the agent fooled, losing its internal sense that the question is unknowable, or overriding, keeping it and committing anyway? "
-    f"Two independent pipelines study 12 open-weight models (3–14B) and a decline-tuned gate on 40 matched stock questions, reading the action, the model's answer when asked, and its internals. "
+    "Authoritative-looking panels make LLM agents commit on unknowable outcomes, and fabricated panels work about as well as real data (Aggarwal, 2026). "
+    "Is the agent fooled, losing its internal sense that the question is unknowable, or overriding, keeping it and committing anyway? "
+    f"Two independent pipelines study 13 open-weight models (3–70B) and a decline-tuned gate on 40 matched stock questions, reading the action, the model's answer when asked, and its internals. "
     f"Panels raise commitment from 0% to as much as {N['commit_max']}. Uncalibrated, layer-wise linear probes say overriding (median deep-layer fooling index at most {N['fi_max']}). "
-    f"A leaked-answer calibration overturns that reading: when the panel also reveals the realised price, models commit and mostly answer correctly, yet the probes move only "
+    f"A leaked-answer calibration overturns that reading: when the panel reveals the realised price, models commit and mostly answer correctly, yet the probes move only "
     f"{N['fipost_X']} of the way and the models still call the question unknowable. Probes and self-report are evidence-blind. A Jacobian-lens readout of the decision state "
-    f"is not: the leaked answer pushes 'uncertain', 'unpredictable', 'unknown' and 'unclear' {N['jl_valid_leak']}% of the way down the vocabulary in every model where the "
-    f"control works, while the panel leaves them near the top in every model of 8B and above ({N['jl_big_panel']}% of the way down), and in two new real-data domains (crypto, weather). "
-    "By this calibrated readout larger models override, while OLMo-2-7B, which rarely calls the question unknowable, is fooled. Activation patching locates the panel's "
-    "effect in the question tokens mid-network, outside the knowability direction; a one-paragraph triage prompt removes the commitments. Evaluations and monitors should "
+    f"is not: the leaked answer pushes 'uncertain', 'unpredictable', 'unknown' and 'unclear' {N['jl_valid_leak']}% of the way down the vocabulary wherever the control works, "
+    f"while the panel leaves them near the top ({N['jl_big_panel']}%) in every model of 8B and above, also on crypto and weather data. Larger models thus keep their doubt: "
+    "those the panel moves override it, and a 70B model is not moved; OLMo-2-7B, which rarely calls the question unknowable, is fooled. Activation patching locates the "
+    "panel's effect in the question tokens mid-network, outside the knowability direction; a one-paragraph triage prompt removes the commitments. Monitors should "
     "calibrate internal readouts against an answer-revealing context before reading them as beliefs."
 )
 
@@ -201,7 +202,7 @@ BODY = [
         "and the self-report barely moves. Both mostly encode the question's form, so fooled and overriding are not separable with them.",
         f"**A readout that passes the calibration.** A Jacobian lens (Gurnee et al., 2026) at the decision token is not evidence-blind: the leaked answer pushes the doubt words "
         f"('uncertain', 'unpredictable', 'unknown', 'unclear') {N['jl_valid_leak']}% of the way down the vocabulary in every model where the control works. Measured with it, the panel "
-        f"leaves them near the top ({N['jl_big_panel']}%) in all five models of 8B and above, on stocks and on two new real-data domains: these models override. OLMo-2-7B is fooled; "
+        f"leaves them near the top ({N['jl_big_panel']}%) in all six models of 8B and above, on stocks and on two new real-data domains: these models override. OLMo-2-7B is fooled; "
         "two smaller models are partly fooled.",
         "**Where the panel acts.** Activation patching shows that the panel's effect is carried at the question and instruction tokens in the middle of the network, largely outside "
         "the probe direction, which the decision does read in late layers.",
@@ -300,8 +301,8 @@ BODY = [
           "uncertainty against ease ('uncertain, unsure, unpredictable, unknown' vs 'straightforward, simple, immediately, already, solved'), and leaking the outcome removes "
           "uncertainty ('Unknown, unclear, TBD, unsure' at the bottom; 'correct, confirmed, already' at the top). The panel instead adds a forecasting or analysis frame "
           "('predictions, estimated' in Llama; 'calculated, analysis' in Qwen3-14B). Figure 1 shows the calibration directly. In every model whose leak control works, the leaked "
-          f"answer pushes the four doubt words {N['jl_valid_leak']}% of the way down the vocabulary. The panel, real or fabricated, leaves them at {N['jl_big_panel']}% in all five models of "
-          "8B and above (Qwen3-14B, Qwen2.5-14B, Phi-4, Llama-3.1-8B, Qwen3-8B) and in Qwen2.5-3B: these models keep the doubt while the action changes. It demotes them partly in "
+          f"answer pushes the four doubt words {N['jl_valid_leak']}% of the way down the vocabulary. The panel, real or fabricated, leaves them at {N['jl_big_panel']}% in all six models of "
+          "8B and above (Llama-3.3-70B, Qwen3-14B, Qwen2.5-14B, Phi-4, Llama-3.1-8B, Qwen3-8B) and in Qwen2.5-3B: these models keep the doubt while the action changes. It demotes them partly in "
           "Qwen3-4B (78%) and Qwen2.5-7B (65%) and as far as the leak in OLMo-2-7B (91% vs 89%), the one committer that rarely calls the question unknowable (P = 0.20): OLMo is fooled. "
           "For Gemma-2-9B and Mistral-7B the leak itself fails, so the J-lens gives no reading there. On an item score (doubt minus forecast words), the panel moves the question "
           f"{N['jl_fi_big']} of the way toward its knowable twin in Llama-3.1-8B, Qwen3-14B and Qwen3-8B, against {N['jl_leak_big']} for the leak, two to four times the range of the "
@@ -311,11 +312,15 @@ BODY = [
      "down the vocabulary, at 70% and 85% depth (fixed in advance). Blue: leaked answer (the calibration: it should demote them). Orange: panel, real and fabricated pooled. Grey: the leak "
      "control fails. Right: the same for the two new domains."),
 
-    ("h3", "4.5 Two more real-data domains"),
+    ("h3", "4.5 Two more real-data domains, and a 70B model"),
     ("p", f"Rebuilt with every arm on crypto and weather (Appendix Table 6), the pattern holds wherever the panel moves behaviour: Llama-3.1-8B commits on 100% (crypto) and 40% "
           f"(weather) with real panels and as much with fabricated ones; asked, models still call the question unknowable; B's decision-orthogonalised probe gap grows ({N['dom_gap']}); and the "
           f"panel leaves the doubt words at {N['dom_panel']}% while the leak pushes them to {N['dom_leak']}%. Behaviour is domain-dependent: Qwen3-14B commits on 78% of crypto items "
-          "but on no weather item, where the panel instead raises its decline probability."),
+          "but on no weather item, where the panel instead raises its decline probability. **At 70B** (Llama-3.3-70B-Instruct, 4-bit; B), the panel no longer works: "
+          f"the model commits on {pc(S70['commit_L2'])} of unknowable items with the real and {pc(S70['commit_fab'])} with the fabricated panel (Llama-3.1-8B: 100%), declines "
+          f"{pc(S70['decline_L2'])}, still answers every knowable question, and its probe position does not move ({S70['proj_unk_L0']:.2f} → {S70['proj_unk_L2']:.2f}). The J-lens agrees: "
+          f"the panel leaves the doubt words {S70['jlens']['doubt']['panel']:.0f}% of the way down while the leak pushes them to {S70['jlens']['doubt']['leak']:.0f}%, and the knowable "
+          "direction reads 'straightforward, easy'. Scale removes the behavioural failure on this prompt in this family, though frontier models still commit (Aggarwal, 2026)."),
 
     ("h3", "4.6 Where the panel acts"),
     ("p", f"Patching (Figure 2; {N['n_patch']} models) locates the panel's effect. Replacing the panel run's activations over the question-and-instruction tokens with no-panel activations restores "
@@ -353,13 +358,13 @@ BODY = [
           "should score actions against calibrated internal states on matched answerable twins, with fabricated and irrelevant panels as standard arms. (3) The panel's effect is "
           "written into the question tokens mid-network, outside the knowability direction, so fixes belong at the action: a one-paragraph triage prompt removed the commitments in the "
           "overriding models, though not in the fooled one. (4) The SFT gate fixes behaviour bluntly: it calls knowable questions unknowable too, and must be checked on knowable accuracy."),
-    ("p", "**Limitations and future work** (details in Appendix A). Twelve 3–14B models; one main domain plus two replications; several probe choices, the leaked-answer anchor and the "
+    ("p", "**Limitations and future work** (details in Appendix A). Thirteen 3–70B models; one main domain plus two replications; several probe choices, the leaked-answer anchor and the "
           "J-lens are post-hoc. Next: head-level path patching from data to question tokens, J-lens and SAE features at frontier scale, and consistency training that ties the action "
           "to a calibrated judgement, checked on knowable accuracy."),
     ("h2", "6. Conclusion"),
     ("p", "Authoritative panels make open-weight agents commit on unknowable questions. Linear probes and the model's own words cannot settle whether they are fooled: both "
-          "barely move even when the answer is in front of the model. Calibrated against that answer, a Jacobian-lens readout can: models of 8B and above keep their doubt and act "
-          "anyway, while a small model is truly fooled. Before reading a probe or a self-report as an agent's belief, calibrate it against a context that actually answers the question."),
+          "barely move even when the answer is in front of the model. Calibrated against that answer, a Jacobian-lens readout can: models of 8B and above keep their doubt (those the panel moves act "
+          "anyway; a 70B model does not act), while a small model is truly fooled. Before reading a probe or a self-report as an agent's belief, calibrate it against a context that actually answers the question."),
 
     ("h2", "Code and Data"),
     ("bullets", [
@@ -375,12 +380,12 @@ BODY = [
     ("refs", None),
     ("pagebreak",),
     ("h2", "Appendix A. Limitations and Dual-Use / Ethical Considerations"),
-    ("p", f"**What this does and does not establish.** For twelve open models of 3–14B parameters, we establish that panels change actions; that linear unknowability probes and the model's "
+    ("p", f"**What this does and does not establish.** For thirteen open models of 3–70B parameters, we establish that panels change actions; that linear unknowability probes and the model's "
           "self-report barely respond even when context answers the question; that a Jacobian-lens readout does respond, and by it models of 8B and above keep their doubt under the panel "
           "(on three domains) while OLMo-2-7B does not; and that the panel's effect on the decision is carried at the question tokens mid-network. We do not establish behaviour at frontier "
           "scale, that the J-lens doubt words are the mechanism the model uses, or a deployable fix beyond the triage prompt."),
     ("bullets", [
-        "**Scale.** Twelve open models of 3–14B parameters and a gate, greedy decoding, 40 cases per domain (stocks; crypto and weather in three models); n = 40 per cell. Frontier models were tested only behaviourally, in the original paper.",
+        "**Scale.** Thirteen open models of 3–70B parameters (one at 70B, in 4-bit) and a gate, greedy decoding, 40 cases per domain (stocks; crypto and weather in three models); n = 40 per cell. Frontier models were tested only behaviourally, in the original paper.",
         "**Jacobian lens.** Post-hoc and from pipeline B only; 64 corpus sequences (the original method uses more) and a finite-difference readout; one four-word doubt set fixed in advance. "
         "B's leak keeps 'Today' unchanged, unlike A's anchor, so the two calibrations are similar but not identical. The leak control fails for Gemma-2-9B and Mistral-7B, so they get no J-lens reading.",
         "**Post-hoc choices.** The pre-registered synthetic probe failed validity; the X and N probes, validity gate, deep-half aggregation, leaked-answer anchor, patching, neutral pushback and "
@@ -423,7 +428,7 @@ BODY = [
      [1.25, 0.6, 0.65, 0.5, 0.5, 0.5, 0.5, 1.2]),
     ("table", ["Model", "doubt words, % down: panel / leak", "FI doubt−forecast: panel / leak", "FI doubt only: panel / leak", "reading"],
      jl_table(),
-     "Table 5. Jacobian lens, all eleven pipeline-B models (decision token). Doubt words = mean position of 'unpredictable', 'uncertain', 'unknown', 'unclear' in the decoded change, % of the "
+     "Table 5. Jacobian lens, all twelve pipeline-B models (decision token; the 70B model at 70% and 85% depth as well). Doubt words = mean position of 'unpredictable', 'uncertain', 'unknown', 'unclear' in the decoded change, % of the "
      "way down the vocabulary (0 = promoted, 100 = demoted), 70% and 85% depth. FI: fooling index of an item score built from 12 doubt and 12 forecast words (median over deep layers); the "
      "doubt-minus-forecast score partly tracks the decision, so the rank readout is primary.",
      [1.2, 1.1, 1.15, 1.1, 1.75]),

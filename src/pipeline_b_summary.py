@@ -5,11 +5,12 @@ usage: python src/pipeline_b_summary.py"""
 import json, os, re, numpy as np
 
 B = "pipeline_b/results"
-VOC = {"Meta_Llama": 128256, "Qwen": 151936, "OLMo": 100352, "phi_4": 100352, "gemma": 256000, "mistral": 32768}
+VOC = {"Meta_Llama": 128256, "Llama_3_3": 128256, "Qwen": 151936, "OLMo": 100352, "phi_4": 100352, "gemma": 256000, "mistral": 32768}
 DOUBT = (" unpredictable", " uncertain", " unknown", " unclear")
 NICE = {"Meta_Llama_3_1_8B_Instruct": "Llama-3.1-8B", "Qwen3_14B": "Qwen3-14B", "Qwen3_8B": "Qwen3-8B", "Qwen3_4B": "Qwen3-4B",
         "Qwen2_5_14B_Instruct": "Qwen2.5-14B", "Qwen2_5_7B_Instruct": "Qwen2.5-7B", "Qwen2_5_3B_Instruct": "Qwen2.5-3B",
-        "OLMo_2_1124_7B_Instruct": "OLMo-2-7B", "phi_4": "Phi-4", "gemma_2_9b_it": "Gemma-2-9B", "mistral_7b_instruct_v0_3": "Mistral-7B-v0.3"}
+        "OLMo_2_1124_7B_Instruct": "OLMo-2-7B", "phi_4": "Phi-4", "gemma_2_9b_it": "Gemma-2-9B", "mistral_7b_instruct_v0_3": "Mistral-7B-v0.3",
+        "Llama_3_3_70B_Instruct_bnb_4bit": "Llama-3.3-70B (4-bit)"}
 
 
 def voc(t):
@@ -56,6 +57,16 @@ for dom in ("crypto", "weather"):
                                             pdecline_L0=dec("L0"), pdecline_L2=dec("L2"),
                                             ask_unk_L2=float(np.mean([x["ask_p3"] for x in rows if x["arm"] == "unk" and x["level"] == "L2"])),
                                             gap_change_rel=ch / gap, gap_change_ci_rel=[lo / gap, hi / gap], jlens=jl[NICE[t]])
+# scale check: Llama-3.3-70B-Instruct (bitsandbytes 4-bit), stock items without the irrelevant arm
+t70 = "Llama_3_3_70B_Instruct_bnb_4bit"
+rows = json.load(open(f"{B}/scale_70b/{t70}.json"))["rows"]
+g = lambda a, l, k: float(np.mean([x["gen_decision"] == k for x in rows if x["arm"] == a and x["level"] == l]))
+out["scale70b"] = dict(commit_L0=g("unk", "L0", "ANSWER"), commit_L2=g("unk", "L2", "ANSWER"), commit_fab=g("unk", "L2fab", "ANSWER"),
+                       decline_L2=g("unk", "L2", "DECLINE"), know_answer_L2=g("ans", "L2", "ANSWER"),
+                       ask_unk_L2=float(np.mean([x["ask_p3"] for x in rows if x["arm"] == "unk" and x["level"] == "L2"])),
+                       proj_unk_L0=float(np.mean([x["proj"] for x in rows if x["arm"] == "unk" and x["level"] == "L0"])),
+                       proj_unk_L2=float(np.mean([x["proj"] for x in rows if x["arm"] == "unk" and x["level"] == "L2"])),
+                       jlens=jl_block(f"{B}/scale_70b/jlens")["Llama-3.3-70B (4-bit)"])
 os.makedirs("results", exist_ok=True)
 json.dump(out, open("results/pipeline_b_summary.json", "w"), indent=1)
 print("wrote results/pipeline_b_summary.json:", len(out["jlens"]), "J-lens models;",
