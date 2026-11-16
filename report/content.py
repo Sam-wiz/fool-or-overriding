@@ -12,11 +12,17 @@ NICE = {"qwen3-14b": "Qwen3-14B", "llama31-8b": "Llama-3.1-8B", "qwen3-8b": "Qwe
 NM = len(ORDER); NMW = {6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}.get(NM, str(NM))
 pc = lambda x: "–" if x is None else f"{100 * x:.0f}%"
 f2 = lambda x: "–" if x is None or (isinstance(x, float) and not np.isfinite(x)) else f"{x:.2f}"
-def rng(v, fmt=f2, sep="–"):
+def rng(v, fmt=None, sep="–"):
     v = [x for x in v if x is not None and np.isfinite(x)]
     if not v: return "–"
-    a, b = fmt(min(v)), fmt(max(v))
-    return a if a == b else f"{a}{sep}{b}"
+    if fmt is pc or fmt is None and False: pass
+    if fmt is pc:
+        a, b = f"{100 * min(v):.0f}", f"{100 * max(v):.0f}"
+        return f"{a}%" if a == b else f"{a}–{b}%"
+    fmt = fmt or f2
+    a, b = fmt(min(v)).replace("-", "−"), fmt(max(v)).replace("-", "−")
+    if a == b: return a
+    return f"{a} to {b}" if min(v) < 0 else f"{a}{sep}{b}"
 NG = [t for t in ORDER if t != "gate-3b"]
 b4 = lambda t, lv: V4m[t]["behaviour"][lv]
 X4 = lambda t: V4m[t]["X_dm"]; N4 = lambda t: V4m[t]["N_dm_crossfit"]
@@ -31,8 +37,10 @@ N["fipost_X"] = rng([X4(t)["FI_L2post"] for t in ORDER if X4(t)["n"]])
 N["fipost_N"] = rng([N4(t)["FI_L2post"] for t in ORDER if N4(t)["n"]])
 N["fi_X"] = rng([R[t]["X_dm_deep"]["FI"] for t in ORDER if R[t]["X_dm_deep"]["n"]])
 N["fi_N"] = rng([R[t]["N_dm_crossfit_deep"]["FI"] for t in ORDER if R[t]["N_dm_crossfit_deep"]["n"]])
-N["ratio_X"] = rng([X4(t)["calib_ratio"] for t in ORDER if X4(t)["calib_ratio"] is not None])
-N["ratio_N"] = rng([N4(t)["calib_ratio"] for t in ORDER if N4(t)["calib_ratio"] is not None])
+N["ratio_X"] = rng([X4(t)["calib_ratio"] for t in ORDER if X4(t)["calib_ratio"] is not None and X4(t)["n"] >= 5])
+N["ratio_N"] = rng([N4(t)["calib_ratio"] for t in ORDER if N4(t)["calib_ratio"] is not None and N4(t)["n"] >= 5])
+N["ratio_all"] = rng([P(t)["calib_ratio"] for t in ORDER for P in (X4, N4) if P(t)["calib_ratio"] is not None and P(t)["n"] >= 5], pc)
+N["fi_max"] = f2(max(R[t][p]["FI"] for t in ORDER for p in ("X_dm_deep", "N_dm_crossfit_deep") if R[t][p]["n"]))
 gt = sum(X4(t)["post_gt_panel"] + N4(t)["post_gt_panel"] for t in ORDER); tot = sum(X4(t)["n"] + N4(t)["n"] for t in ORDER)
 N["post_gt"] = f"{gt} of {tot}"
 cr = {c: sum(RF[t][f"ci_rule_{p}"][c] for t in ORDER for p in ("X_dm", "N_dm_crossfit")) for c in ("Overriding", "Mixed", "Fooled")}
@@ -103,7 +111,7 @@ def steer_table():
 def steer_extra():
     out = []
     for t in ORDER:
-        if t in ("llama31-8b", "qwen25-3b", "qwen3-8b", "gemma2-9b"): continue
+        if t in ("llama31-8b", "qwen25-3b", "qwen3-8b", "gemma2-9b", "gate-3b"): continue
         S, L, ok = steer_src(t)
         if not S: continue
         out.append(f"{NICE[t]} {pc(sc(S,'xdir',0,'unk_L2'))} → {pc(sc(S,'xdir',8,'unk_L2'))} (random {pc(sc(S,'random',8,'unk_L2'))})")
@@ -118,7 +126,7 @@ def leak_table():
                     [f'{f2(b["leak_r25"]["p_answer"])} → {f2(b["leak_exact"]["p_answer"])}'])
     return rows
 
-GITHUB_URL = "https://github.com/samrudh-praxy/fooled-or-overriding"
+GITHUB_URL = "https://github.com/Sam-wiz/fool-or-overriding"
 TITLE = "Fooled or Overriding? A Leaked-Answer Calibration Shows the Unknowability Signal in LLM Agents Is Evidence-Blind"
 AUTHORS = [("Samrudh Jain", "Independent researcher"), ("Pranav Aggarwal", "Independent researcher")]
 
@@ -127,12 +135,12 @@ ABSTRACT = (
     "(Aggarwal, 2026). Is the agent fooled, losing its internal sense that the question is unknowable, or overriding, keeping it and committing anyway? "
     f"In {NMW} open-weight models (3–14B) on 40 matched stock questions we measure the action, the model's answer when asked, and layer-wise linear probes "
     f"checked with a positive control. Panels raise commitment from 0% to as much as {N['commit_max']} while models still call the questions unknowable when asked, "
-    f"and the probes move only part of the way (median deep-layer fooling index {N['fi_N']} to {N['fi_X']}), which looks like overriding. A leaked-answer calibration "
+    f"and the probes move only part of the way (median deep-layer fooling index at most {N['fi_max']}), which looks like overriding. A leaked-answer calibration "
     f"overturns this reading. When the panel also shows the realised price and the date has passed, models commit on {N['post_commit']} and mostly answer correctly, yet the "
     f"probes reach only {N['fipost_X']} and most models still call the question unknowable. Measured against this reference, panels move the probe "
-    f"{N['ratio_X']} as far as the real answer does. The signal mostly encodes the question's form, so it cannot separate fooled from overriding. Activation patching "
+    f"{N['ratio_all']} as far as the real answer does. The signal mostly encodes the question's form, so it cannot separate fooled from overriding. Activation patching "
     f"locates the panel's effect: restoring no-panel activations over the question tokens restores ≥90% of abstention by {N['patch_suffix']} depth, while the probe direction "
-    "alone restores almost none at mid-depth. Steering cuts commitment in two models, and a neutral 'Are you sure?' shows that earlier answer-abandonment came from knowability wording. "
+    "alone restores little before late layers. Steering cuts commitment in two models, and a neutral 'Are you sure?' shows that earlier answer-abandonment came from knowability wording. "
     "Probes and self-reports of doubt should be calibrated against answer-revealing contexts before they are trusted as monitors."
 )
 
@@ -150,7 +158,7 @@ BODY = [
     ("num", [
         f"**Behaviour in {NMW} open models.** Panels raise commitment on unknowable questions by up to {N['commit_max'].rstrip('%')} points ({N['n_full']} models reach ≥95%), and fabricated panels "
         "work as well as real ones; an irrelevant panel mostly does not.",
-        f"**A calibration that changes the conclusion.** Uncalibrated, the probes say *overriding*: the median deep-layer fooling index is {N['fi_N']} (cross-fitted) to {N['fi_X']} (cross-domain). "
+        f"**A calibration that changes the conclusion.** Uncalibrated, the probes say *overriding*: the median deep-layer fooling index is {N['fi_N']} (cross-fitted) and {N['fi_X']} (cross-domain). "
         f"We add the missing 'fooled' reference, the same question with the answer in the panel. Models then answer it, mostly correctly, but the probes move only to {N['fipost_X']} "
         "and the self-report barely moves. Both mostly encode the question's form. Fooled and overriding are therefore not separable with this signal, "
         "and we withdraw the 'overriding' reading of our own uncalibrated result.",
