@@ -3,13 +3,13 @@
 Code and results for an Apart Research **AI x Epistemics Research Sprint** project (13–16 Nov 2026). Authors: Samrudh Jain and Pranav Aggarwal.
 Report: `report/out/Fooled_or_Overriding_Apart_AIxEpistemics.pdf` (built from `report/content.py` by `src/build_report.py`).
 
-**Result in one line.** Panels make agents commit on unknowable questions; linear probes and the model's own self-report barely move even when the answer is placed in the panel (evidence-blind), but a Jacobian-lens readout of the decision state passes that calibration, and by it models of 8B and above keep their doubt and act anyway (overriding) while OLMo-2-7B is fooled. Patching shows the panel acts through the question tokens mid-network, outside the knowability direction.
+**Result in one line.** Panels make agents commit on unknowable questions; linear probes and the model's own self-report barely move even when the answer is placed in the panel (evidence-blind), but a Jacobian-lens readout of the decision state passes that calibration, and by it models of 8B and above keep their doubt and act anyway (overriding) while OLMo-2-7B is fooled; at 70B the panel no longer moves behaviour. Patching shows the panel acts through the question tokens mid-network, outside the knowability direction.
 
 **Two pipelines.** The two authors built independent pipelines during the sprint and ran them on overlapping models:
 
 | | Pipeline A (`src/`, `results/`) | Pipeline B (`pipeline_b/`) |
 |---|---|---|
-| Models | Qwen3-14B/8B/4B, Qwen2.5-7B/3B, Llama-3.1-8B, Llama-3.2-3B, Mistral-7B, Gemma-2-9B, SFT gate | Llama-3.1-8B, Qwen3-14B/8B, Gemma-2-9B, Qwen2.5-14B/7B, Mistral-7B, OLMo-2-7B, Phi-4 (J-lens also Qwen3-4B, Qwen2.5-3B) |
+| Models | Qwen3-14B/8B/4B, Qwen2.5-7B/3B, Llama-3.1-8B, Llama-3.2-3B, Mistral-7B, Gemma-2-9B, SFT gate | Llama-3.1-8B, Qwen3-14B/8B, Gemma-2-9B, Qwen2.5-14B/7B, Mistral-7B, OLMo-2-7B, Phi-4, **Llama-3.3-70B (4-bit)** (J-lens also Qwen3-4B, Qwen2.5-3B) |
 | Inside | cross-domain (X) and cross-fitted (N) probes, fooling index, validity gate | synthetic probe with a decision-orthogonalised axis, **Jacobian lens** |
 | Calibration | leaked-answer anchor ('Today' = target date), graded leakage | leaked outcome (realised close appended) |
 | Mechanism | suffix / last-token / X-component patching, read-out gain | decision-token component patching (decline vs knowability components) |
