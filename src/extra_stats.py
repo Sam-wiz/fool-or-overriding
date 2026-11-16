@@ -8,23 +8,25 @@ def auc(y, s):
 out = {}
 for d in sys.argv[1:]:
     meta, rows = load(d); NL = meta["n_layers"]; sel = meta["probe"]["sel_layers"]
-    A = np.load(os.path.join(d, "acts_sel.npy")).astype(np.float32); li = sel.index(NL // 2); X = A[:, li]
-    xi = [i for i, r in enumerate(rows) if r["set"] == "xfer" and r["level"] == "L2"]
-    y = np.array([rows[i]["label"] for i in xi]); u = X[xi][y == 1].mean(0) - X[xi][y == 0].mean(0)
-    s = X @ u / (u @ u)
-    for i, r in enumerate(rows): r["x"] = float(s[i])
+    has_acts = os.path.exists(os.path.join(d, "acts_sel.npy"))  # not returned for the three post-review models
+    if has_acts:
+        A = np.load(os.path.join(d, "acts_sel.npy")).astype(np.float32); li = sel.index(NL // 2); X = A[:, li]
+        xi = [i for i, r in enumerate(rows) if r["set"] == "xfer" and r["level"] == "L2"]
+        y = np.array([rows[i]["label"] for i in xi]); u = X[xi][y == 1].mean(0) - X[xi][y == 0].mean(0)
+        s = X @ u / (u @ u)
+    for i, r in enumerate(rows): r["x"] = float(s[i]) if has_acts else 0.0
     o = {}
     # (1) within-condition: are committed unknowable items represented as less unknowable?
     for lv in ("L2", "L2fab", "L2irr"):
         g = [r for r in rows if r["set"] == "nse" and r["label"] == 1 and r["level"] == lv and r.get("decision")]
-        o[f"within_{lv}_commit_auc"] = auc([r["commit"] for r in g], [-r["x"] for r in g]); o[f"within_{lv}_n_commit"] = int(sum(r["commit"] for r in g))
+        o[f"within_{lv}_commit_auc"] = auc([r["commit"] for r in g], [-r["x"] for r in g]) if has_acts else None; o[f"within_{lv}_n_commit"] = int(sum(r["commit"] for r in g))
     g = [r for r in rows if r["set"] == "flag" and r.get("decision")]
-    o["within_flag_commit_auc"] = auc([r["commit"] for r in g], [-r["x"] for r in g]); o["flag_n_commit"] = int(sum(r["commit"] for r in g))
+    o["within_flag_commit_auc"] = auc([r["commit"] for r in g], [-r["x"] for r in g]) if has_acts else None; o["flag_n_commit"] = int(sum(r["commit"] for r in g))
     # (2) monitor on NSE+flagship items the agent ANSWERED (xfer excluded: used to train the direction)
     ans = [r for r in rows if r["set"] in ("nse", "flag") and r.get("decision") == "ANSWER"]
     yb = [r["label"] for r in ans]
     conf = lambda r: -abs(r["prob_yes"] - 50) if r.get("prob_yes") is not None else 0.0
-    o["monitor"] = dict(n=len(ans), n_bad=int(sum(yb)), xprobe=auc(yb, [r["x"] for r in ans]), ask=auc(yb, [r["ask_unk"] for r in ans]),
+    o["monitor"] = dict(n=len(ans), n_bad=int(sum(yb)), xprobe=auc(yb, [r["x"] for r in ans]) if has_acts else None, ask=auc(yb, [r["ask_unk"] for r in ans]),
                         stated_conf=auc(yb, [conf(r) for r in ans]), synth_probe=auc(yb, [r["s"] for r in ans]))
     # (3) stated probability when committing on unknowable items
     cm = [r for r in rows if r["set"] == "nse" and r["label"] == 1 and r.get("decision") == "ANSWER"]

@@ -25,13 +25,15 @@ for t in ORDER:
     # (b) validity of X at steering layer NL//2
     v=sc["layers"][str(NL//2)]["X_dm"]; o["steer_layer"]=NL//2; o["steer_layer_valid"]=v["valid"]; o["steer_layer_FI"]=v["FI_L2"]["point"]; o["steer_layer_pc"]=v["posctrl_know_L0_L2"]["point"]
     # (c) monitor at 3NL//4 with X direction (cached acts_sel)
-    meta,rows=load(d); sel=meta["probe"]["sel_layers"]; A=np.load(f"{d}/acts_sel.npy").astype(np.float32)
-    L3=(3*NL)//4; X=A[:, sel.index(L3)]
-    xi=[i for i,r in enumerate(rows) if r["set"]=="xfer" and r["level"]=="L2"]; y=np.array([rows[i]["label"] for i in xi])
-    u=X[xi][y==1].mean(0)-X[xi][y==0].mean(0); s=X@u/(u@u)
-    ans=[i for i,r in enumerate(rows) if r["set"] in("nse","flag") and r.get("decision")=="ANSWER"]
-    yb=[rows[i]["label"] for i in ans]
-    o["monitor_L3"]=dict(layer=L3, valid=sc["layers"][str(L3)]["X_dm"]["valid"], xprobe=float(roc_auc_score(yb,[s[i] for i in ans])) if len(set(yb))==2 else None)
+    meta,rows=load(d); sel=meta["probe"]["sel_layers"]; L3=(3*NL)//4
+    if os.path.exists(f"{d}/acts_sel.npy"):  # not returned for the three post-review models
+        A=np.load(f"{d}/acts_sel.npy").astype(np.float32); X=A[:, sel.index(L3)]
+        xi=[i for i,r in enumerate(rows) if r["set"]=="xfer" and r["level"]=="L2"]; y=np.array([rows[i]["label"] for i in xi])
+        u=X[xi][y==1].mean(0)-X[xi][y==0].mean(0); s=X@u/(u@u)
+        ans=[i for i,r in enumerate(rows) if r["set"] in("nse","flag") and r.get("decision")=="ANSWER"]
+        yb=[rows[i]["label"] for i in ans]
+        o["monitor_L3"]=dict(layer=L3, valid=sc["layers"][str(L3)]["X_dm"]["valid"], xprobe=float(roc_auc_score(yb,[s[i] for i in ans])) if len(set(yb))==2 else None)
+    else: o["monitor_L3"]=None
     # (d) know L2 accuracy unsteered
     kn=[r for r in rows if r["set"]=="nse" and r["label"]==0 and r["level"]=="L2" and r.get("decision")=="ANSWER" and r.get("prob_yes") is not None]
     o["know_L2_acc"]=float(np.mean([(r["prob_yes"]>50)==r["gold"] for r in kn])) if kn else None

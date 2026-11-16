@@ -1,0 +1,524 @@
+{
+ "tag": "v2-qwen25-7b",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "NL": 28,
+ "behaviour": {
+  "unk_L0": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999997097238,
+   "p50": null
+  },
+  "unk_L1": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999998265064,
+   "p50": null
+  },
+  "unk_L2": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.999999982338086,
+   "p50": null
+  },
+  "unk_L2irr": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.475,
+   "tool": 0.525,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999997938968,
+   "p50": null
+  },
+  "unk_L2fab": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999177169538,
+   "p50": null
+  },
+  "know_L0": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9997371073795887,
+   "p50": null
+  },
+  "know_L1": {
+   "n": 40,
+   "commit": 0.775,
+   "decline": 0.225,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.7249821824497581,
+   "p50": 0.16129032258064516
+  },
+  "know_L2": {
+   "n": 40,
+   "commit": 0.7,
+   "decline": 0.0,
+   "tool": 0.3,
+   "unparsed": 0.0,
+   "ask_unk": 0.5637268796256407,
+   "p50": 0.0
+  },
+  "xfer_crypto_unk_L0": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_crypto_unk_L1": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_crypto_unk_L2": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_crypto_ans_L2": {
+   "n": 24,
+   "commit": 0.7083333333333334,
+   "acc": 0.8235294117647058
+  },
+  "xfer_sports_unk_L0": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_sports_unk_L1": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_sports_unk_L2": {
+   "n": 24,
+   "commit": 0.125
+  },
+  "xfer_sports_ans_L2": {
+   "n": 24,
+   "commit": 0.9583333333333334,
+   "acc": 0.6956521739130435
+  },
+  "xfer_weather_unk_L0": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_weather_unk_L1": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_weather_unk_L2": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_weather_ans_L2": {
+   "n": 24,
+   "commit": 0.9166666666666666,
+   "acc": 0.8947368421052632
+  },
+  "flag_thin": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "flag_rich": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "flag_scram": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "flag_scramfull": {
+   "n": 24,
+   "commit": 0.0
+  }
+ },
+ "layer_verdicts": {
+  "X_dm": {
+   "n_valid": 28,
+   "n_layers": 28,
+   "n_valid_deep": 15,
+   "median_FI_deep": -0.033308591693639755,
+   "median_FI_early": 0.5277372002601624,
+   "verdict_deep": "Overriding"
+  },
+  "N_dm_crossfit": {
+   "n_valid": 23,
+   "n_layers": 28,
+   "n_valid_deep": 15,
+   "median_FI_deep": -0.0020617026123066866,
+   "median_FI_early": 0.3317862281523395,
+   "verdict_deep": "Overriding"
+  }
+ },
+ "xsteer": {
+  "random|8|know_L0": {
+   "n": 120,
+   "pact_lo": -8.227805487065716
+  },
+  "random|8|know_L2": {
+   "n": 120,
+   "pact_lo": 3.6142315700769285
+  },
+  "random|8|unk_L0": {
+   "n": 120,
+   "pact_lo": -11.18728020491061
+  },
+  "random|8|unk_L2": {
+   "n": 120,
+   "pact_lo": -2.9830086043854918
+  },
+  "random|8|unk_L2fab": {
+   "n": 120,
+   "pact_lo": -2.578729651356205
+  },
+  "random|16|know_L0": {
+   "n": 120,
+   "pact_lo": -0.2674394675010646,
+   "commit": 0.6666666666666666,
+   "decline": 0.0,
+   "tool": 0.3333333333333333
+  },
+  "random|16|know_L2": {
+   "n": 120,
+   "pact_lo": 4.752892788273463,
+   "commit": 0.7583333333333333,
+   "decline": 0.03333333333333333,
+   "tool": 0.20833333333333334
+  },
+  "random|16|unk_L0": {
+   "n": 120,
+   "pact_lo": -1.9710838845668006,
+   "commit": 0.44166666666666665,
+   "decline": 0.0,
+   "tool": 0.275
+  },
+  "random|16|unk_L2": {
+   "n": 120,
+   "pact_lo": 1.6789983414965663,
+   "commit": 0.6583333333333333,
+   "decline": 0.016666666666666666,
+   "tool": 0.325
+  },
+  "random|16|unk_L2fab": {
+   "n": 120,
+   "pact_lo": 2.2580024247036667,
+   "commit": 0.6583333333333333,
+   "decline": 0.008333333333333333,
+   "tool": 0.3333333333333333
+  },
+  "xdir|-8|know_L0": {
+   "n": 40,
+   "pact_lo": -16.025621069225075,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|-8|know_L2": {
+   "n": 40,
+   "pact_lo": 2.2425065868274054,
+   "commit": 0.675,
+   "decline": 0.0,
+   "tool": 0.325
+  },
+  "xdir|-8|unk_L0": {
+   "n": 40,
+   "pact_lo": -16.89687125166264,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|-8|unk_L2": {
+   "n": 40,
+   "pact_lo": -5.227064582720316,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|-8|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -4.6483343460499436,
+   "commit": 0.025,
+   "decline": 0.0,
+   "tool": 0.975
+  },
+  "xdir|-4|know_L0": {
+   "n": 40,
+   "pact_lo": -18.239938959988205
+  },
+  "xdir|-4|know_L2": {
+   "n": 40,
+   "pact_lo": 3.114798063897098
+  },
+  "xdir|-4|unk_L0": {
+   "n": 40,
+   "pact_lo": -18.183396352818477
+  },
+  "xdir|-4|unk_L2": {
+   "n": 40,
+   "pact_lo": -7.044204319190359
+  },
+  "xdir|-4|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -6.64097322966513
+  },
+  "xdir|-2|know_L0": {
+   "n": 40,
+   "pact_lo": -18.37027275917233
+  },
+  "xdir|-2|know_L2": {
+   "n": 40,
+   "pact_lo": 3.7165526242700246
+  },
+  "xdir|-2|unk_L0": {
+   "n": 40,
+   "pact_lo": -18.6039887971351
+  },
+  "xdir|-2|unk_L2": {
+   "n": 40,
+   "pact_lo": -7.939759161109038
+  },
+  "xdir|-2|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -7.696074907139268
+  },
+  "xdir|0|know_L0": {
+   "n": 40,
+   "pact_lo": -17.41484692510248,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|0|know_L2": {
+   "n": 40,
+   "pact_lo": 4.866983272002802,
+   "commit": 0.7,
+   "decline": 0.0,
+   "tool": 0.3
+  },
+  "xdir|0|unk_L0": {
+   "n": 40,
+   "pact_lo": -18.433836374033984,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|0|unk_L2": {
+   "n": 40,
+   "pact_lo": -8.117514275669588,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|0|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -7.958229109166018,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|2|know_L0": {
+   "n": 40,
+   "pact_lo": -15.469803019834984
+  },
+  "xdir|2|know_L2": {
+   "n": 40,
+   "pact_lo": 6.320766831211935
+  },
+  "xdir|2|unk_L0": {
+   "n": 40,
+   "pact_lo": -17.824393458455216
+  },
+  "xdir|2|unk_L2": {
+   "n": 40,
+   "pact_lo": -7.459968268219353
+  },
+  "xdir|2|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -7.427220705285329
+  },
+  "xdir|4|know_L0": {
+   "n": 40,
+   "pact_lo": -12.921634472755642,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|4|know_L2": {
+   "n": 40,
+   "pact_lo": 7.581053802478157,
+   "commit": 0.775,
+   "decline": 0.0,
+   "tool": 0.225
+  },
+  "xdir|4|unk_L0": {
+   "n": 40,
+   "pact_lo": -16.897790582575567,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|4|unk_L2": {
+   "n": 40,
+   "pact_lo": -6.380516193932508,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|4|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -6.321199559586006,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|8|know_L0": {
+   "n": 40,
+   "pact_lo": -7.64334931199933,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|8|know_L2": {
+   "n": 40,
+   "pact_lo": 7.993416864014574,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|8|unk_L0": {
+   "n": 40,
+   "pact_lo": -15.062027533978414,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|8|unk_L2": {
+   "n": 40,
+   "pact_lo": -4.577692132578785,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|8|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -4.640227662143593,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|16|know_L0": {
+   "n": 40,
+   "pact_lo": -5.946793574074325,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|16|know_L2": {
+   "n": 40,
+   "pact_lo": 0.23774583913886232,
+   "commit": 0.85,
+   "decline": 0.0,
+   "tool": 0.15
+  },
+  "xdir|16|unk_L0": {
+   "n": 40,
+   "pact_lo": -9.199880112137553,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|16|unk_L2": {
+   "n": 40,
+   "pact_lo": -3.571773870276511,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  },
+  "xdir|16|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -3.559280381657736,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0
+  }
+ },
+ "push": {
+  "unk_L0": {
+   "n": 40,
+   "commit_before": 0.0,
+   "commit_after": 0.0,
+   "decline_before": 0.0,
+   "decline_after": 1.0,
+   "x_before": 3.4120577394962313,
+   "x_after": 1.513753169775009,
+   "transitions": {
+    "CALL_TOOL->DECLINE": 40
+   }
+  },
+  "unk_L2": {
+   "n": 40,
+   "commit_before": 0.0,
+   "commit_after": 0.0,
+   "decline_before": 0.0,
+   "decline_after": 1.0,
+   "x_before": 3.167882800102234,
+   "x_after": 1.406315490603447,
+   "transitions": {
+    "CALL_TOOL->DECLINE": 40
+   }
+  },
+  "unk_L2fab": {
+   "n": 40,
+   "commit_before": 0.0,
+   "commit_after": 0.075,
+   "decline_before": 0.0,
+   "decline_after": 0.925,
+   "x_before": 3.1766068756580355,
+   "x_after": 1.4307381957769394,
+   "transitions": {
+    "CALL_TOOL->DECLINE": 37,
+    "CALL_TOOL->ANSWER": 3
+   }
+  },
+  "know_L0": {
+   "n": 40,
+   "commit_before": 0.0,
+   "commit_after": 0.0,
+   "decline_before": 0.0,
+   "decline_after": 0.0,
+   "x_before": 3.2273618042469026,
+   "x_after": 1.1835961878299712,
+   "transitions": {
+    "CALL_TOOL->CALL_TOOL": 40
+   }
+  },
+  "know_L2": {
+   "n": 40,
+   "commit_before": 0.7,
+   "commit_after": 0.85,
+   "decline_before": 0.0,
+   "decline_after": 0.15,
+   "x_before": 2.848507356643677,
+   "x_after": 1.696777480840683,
+   "transitions": {
+    "CALL_TOOL->ANSWER": 7,
+    "CALL_TOOL->DECLINE": 5,
+    "ANSWER->ANSWER": 27,
+    "ANSWER->DECLINE": 1
+   }
+  },
+  "sep_L2_before": 1.0,
+  "sep_L2_after": 0.048750000000000016
+ }
+}

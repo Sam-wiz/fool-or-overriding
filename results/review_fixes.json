@@ -271,5 +271,110 @@
    34,
    34
   ]
+ },
+ "qwen25-7b": {
+  "ci_rule_X_dm": {
+   "Overriding": 13,
+   "Mixed": 2,
+   "Fooled": 0
+  },
+  "maxFI_X_dm": 0.4332796037197113,
+  "ci_rule_N_dm_crossfit": {
+   "Overriding": 13,
+   "Mixed": 2,
+   "Fooled": 0
+  },
+  "maxFI_N_dm_crossfit": 0.37614234159077975,
+  "steer_layer": 14,
+  "steer_layer_valid": true,
+  "steer_layer_FI": 0.4332796037197113,
+  "steer_layer_pc": 0.37885427474975586,
+  "monitor_L3": null,
+  "know_L2_acc": 0.5,
+  "ask_unk_L2": 0.999999982338086,
+  "ask_unk_L2fab": 0.9999999177169538,
+  "ask_unk_min_item": 0.9999980042705988,
+  "push_x": {
+   "unk_before": 3.167882800102234,
+   "unk_after": 1.406315490603447,
+   "know_before": 2.848507356643677,
+   "know_after": 1.696777480840683,
+   "gap_before": 0.31937544345855695,
+   "gap_after": -0.29046199023723607
+  },
+  "push_correct_abandoned": [
+   0,
+   14
+  ]
+ },
+ "mistral-7b": {
+  "ci_rule_X_dm": {
+   "Overriding": 17,
+   "Mixed": 0,
+   "Fooled": 0
+  },
+  "maxFI_X_dm": -0.04287150129675865,
+  "ci_rule_N_dm_crossfit": {
+   "Overriding": 17,
+   "Mixed": 0,
+   "Fooled": 0
+  },
+  "maxFI_N_dm_crossfit": -0.014003709727507087,
+  "steer_layer": 16,
+  "steer_layer_valid": true,
+  "steer_layer_FI": -0.04287150129675865,
+  "steer_layer_pc": 0.24786722660064697,
+  "monitor_L3": null,
+  "know_L2_acc": 0.275,
+  "ask_unk_L2": 0.8173652051488709,
+  "ask_unk_L2fab": 0.8560911381128576,
+  "ask_unk_min_item": 0.1179998242237426,
+  "push_x": {
+   "unk_before": 0.07602298241108656,
+   "unk_after": 0.038413997879251836,
+   "know_before": -0.9251470685005188,
+   "know_after": -0.22491352073848248,
+   "gap_before": 1.0011700509116053,
+   "gap_after": 0.2633275186177343
+  },
+  "push_correct_abandoned": [
+   0,
+   11
+  ]
+ },
+ "llama32-3b": {
+  "ci_rule_X_dm": {
+   "Overriding": 2,
+   "Mixed": 8,
+   "Fooled": 0
+  },
+  "maxFI_X_dm": 0.36791110038757324,
+  "ci_rule_N_dm_crossfit": {
+   "Overriding": 8,
+   "Mixed": 7,
+   "Fooled": 0
+  },
+  "maxFI_N_dm_crossfit": 0.28085760224519113,
+  "steer_layer": 14,
+  "steer_layer_valid": true,
+  "steer_layer_FI": 0.35622578859329224,
+  "steer_layer_pc": 0.7929571270942688,
+  "monitor_L3": null,
+  "know_L2_acc": 0.35,
+  "ask_unk_L2": 0.9928888347424915,
+  "ask_unk_L2fab": 0.9916852927674151,
+  "ask_unk_min_item": 0.9859064849374547,
+  "push_x": {
+   "unk_before": 0.3749717429280281,
+   "unk_after": -0.342227540910244,
+   "know_before": -0.4786422155797482,
+   "know_after": -0.646860034763813,
+   "gap_before": 0.8536139585077762,
+   "gap_after": 0.30463249385356905
+  },
+  "push_correct_abandoned": [
+   14,
+   14
+  ]
  }
 }

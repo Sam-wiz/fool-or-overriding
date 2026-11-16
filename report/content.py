@@ -24,24 +24,31 @@ def rng(v, fmt=None, sep="–"):
     if a == b: return a
     return f"{a} to {b}" if min(v) < 0 else f"{a}{sep}{b}"
 NG = [t for t in ORDER if t != "gate-3b"]
+USE = [t for t in ORDER if V4m[t]["behaviour"]["L2post"]["commit"] >= 0.5]      # models that act on the leaked answer
+PANEL = [t for t in ORDER if R[t]["behaviour"]["unk_L2"]["commit"] >= 0.25]     # models the panel pushes to commit
+RESIST = [t for t in ORDER if t not in USE]
+WN = lambda n: {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}.get(n, str(n))
 b4 = lambda t, lv: V4m[t]["behaviour"][lv]
 X4 = lambda t: V4m[t]["X_dm"]; N4 = lambda t: V4m[t]["N_dm_crossfit"]
 
 # ---------- computed numbers used in the text ----------
 N = {}
-N["post_commit"] = rng([b4(t, "L2post")["commit"] for t in ORDER], pc)
-N["post_acc"] = rng([b4(t, "L2post")["acc_of_committed"] for t in NG], pc)
-N["post_ask"] = rng([b4(t, "L2post")["ask_unk"] for t in ORDER if t != "llama31-8b"])
+N["post_commit"] = rng([b4(t, "L2post")["commit"] for t in USE], pc)
+N["post_acc"] = rng([b4(t, "L2post")["acc_of_committed"] for t in USE if t != "gate-3b"], pc)
+N["post_ask"] = rng([b4(t, "L2post")["ask_unk"] for t in USE if t != "llama31-8b"])
+N["resist_post"] = rng([b4(t, "L2post")["commit"] for t in RESIST], pc)
+N["resist_names"] = ", ".join(NICE[t] for t in RESIST)
+N["n_use"], N["n_panel"] = WN(len(USE)), WN(len(PANEL))
 N["post_ask_llama"] = f2(b4("llama31-8b", "L2post")["ask_unk"]) if "llama31-8b" in ORDER else "–"
-N["fipost_X"] = rng([X4(t)["FI_L2post"] for t in ORDER if X4(t)["n"]])
-N["fipost_N"] = rng([N4(t)["FI_L2post"] for t in ORDER if N4(t)["n"]])
+N["fipost_X"] = rng([X4(t)["FI_L2post"] for t in USE if X4(t)["n"]])
+N["fipost_N"] = rng([N4(t)["FI_L2post"] for t in USE if N4(t)["n"]])
 N["fi_X"] = rng([R[t]["X_dm_deep"]["FI"] for t in ORDER if R[t]["X_dm_deep"]["n"]])
 N["fi_N"] = rng([R[t]["N_dm_crossfit_deep"]["FI"] for t in ORDER if R[t]["N_dm_crossfit_deep"]["n"]])
-N["ratio_X"] = rng([X4(t)["calib_ratio"] for t in ORDER if X4(t)["calib_ratio"] is not None and X4(t)["n"] >= 5])
-N["ratio_N"] = rng([N4(t)["calib_ratio"] for t in ORDER if N4(t)["calib_ratio"] is not None and N4(t)["n"] >= 5])
-N["ratio_all"] = rng([P(t)["calib_ratio"] for t in ORDER for P in (X4, N4) if P(t)["calib_ratio"] is not None and P(t)["n"] >= 5], pc)
+N["ratio_X"] = rng([X4(t)["calib_ratio"] for t in USE if X4(t)["calib_ratio"] is not None and X4(t)["n"] >= 5])
+N["ratio_N"] = rng([N4(t)["calib_ratio"] for t in USE if N4(t)["calib_ratio"] is not None and N4(t)["n"] >= 5])
+N["ratio_all"] = rng([P(t)["calib_ratio"] for t in USE for P in (X4, N4) if P(t)["calib_ratio"] is not None and P(t)["n"] >= 5], pc)
 N["fi_max"] = f2(max(R[t][p]["FI"] for t in ORDER for p in ("X_dm_deep", "N_dm_crossfit_deep") if R[t][p]["n"]))
-gt = sum(X4(t)["post_gt_panel"] + N4(t)["post_gt_panel"] for t in ORDER); tot = sum(X4(t)["n"] + N4(t)["n"] for t in ORDER)
+gt = sum(X4(t)["post_gt_panel"] + N4(t)["post_gt_panel"] for t in USE); tot = sum(X4(t)["n"] + N4(t)["n"] for t in USE)
 N["post_gt"] = f"{gt} of {tot}"
 cr = {c: sum(RF[t][f"ci_rule_{p}"][c] for t in ORDER for p in ("X_dm", "N_dm_crossfit")) for c in ("Overriding", "Mixed", "Fooled")}
 N["ci_O"], N["ci_M"], N["ci_F"], N["ci_tot"] = cr["Overriding"], cr["Mixed"], cr["Fooled"], sum(cr.values())
@@ -101,7 +108,7 @@ def steer_table():
     rows = []
     for t in ORDER:
         S, L, ok = steer_src(t)
-        if S is None or t == "gemma2-9b": continue
+        if S is None or t not in PANEL: continue
         rows.append([NICE[t], f'{L}{"" if ok else "*"}',
                      f"{pc(sc(S,'xdir',0,'unk_L2'))} → {pc(sc(S,'xdir',8,'unk_L2'))} ({pc(sc(S,'random',8,'unk_L2'))})",
                      f"{pc(sc(S,'xdir',0,'unk_L2fab'))} → {pc(sc(S,'xdir',8,'unk_L2fab'))} ({pc(sc(S,'random',8,'unk_L2fab'))})",
@@ -111,7 +118,7 @@ def steer_table():
 def steer_extra():
     out = []
     for t in ORDER:
-        if t in ("llama31-8b", "qwen25-3b", "qwen3-8b", "gemma2-9b", "gate-3b"): continue
+        if t in ("llama31-8b", "qwen25-3b", "qwen3-8b") or t not in PANEL: continue
         S, L, ok = steer_src(t)
         if not S: continue
         out.append(f"{NICE[t]} {pc(sc(S,'xdir',0,'unk_L2'))} → {pc(sc(S,'xdir',8,'unk_L2'))} (random {pc(sc(S,'random',8,'unk_L2'))})")
@@ -134,10 +141,10 @@ ABSTRACT = (
     "Authoritative-looking indicator panels make LLM agents commit to calls on unknowable outcomes, and fabricated panels work about as well as real data "
     "(Aggarwal, 2026). Is the agent fooled, losing its internal sense that the question is unknowable, or overriding, keeping it and committing anyway? "
     f"In {NMW} open-weight models (3–14B) on 40 matched stock questions we measure the action, the model's answer when asked, and layer-wise linear probes "
-    f"checked with a positive control. Panels raise commitment from 0% to as much as {N['commit_max']} while models still call the questions unknowable when asked, "
+    f"checked with a positive control. In {N['n_panel']} models panels raise commitment from 0% to as much as {N['commit_max']}, while models still call the questions unknowable "
     f"and the probes move only part of the way (median deep-layer fooling index at most {N['fi_max']}), which looks like overriding. A leaked-answer calibration "
-    f"overturns this reading. When the panel also shows the realised price and the date has passed, models commit on {N['post_commit']} and mostly answer correctly, yet the "
-    f"probes reach only {N['fipost_X']} and most models still call the question unknowable. Measured against this reference, panels move the probe "
+    f"overturns this reading. When the panel also shows the realised price and the date has passed, {N['n_use']} models commit on {N['post_commit']} and mostly answer correctly, yet the "
+    f"probes reach only {N['fipost_X']} and most still call the question unknowable. Measured against this reference, panels move the probe "
     f"{N['ratio_all']} as far as the real answer does. The signal mostly encodes the question's form, so it cannot separate fooled from overriding. Activation patching "
     f"locates the panel's effect: restoring no-panel activations over the question tokens restores ≥90% of abstention by {N['patch_suffix']} depth, while the probe direction "
     "alone restores little before late layers. Steering cuts commitment in two models, and a neutral 'Are you sure?' shows that earlier answer-abandonment came from knowability wording. "
@@ -156,10 +163,10 @@ BODY = [
     ("p", "We measure three channels on every item: **inside** (linear probes for unknowability at every layer), **words** (the model's answer when asked whether the question is "
           "knowable) and **action** (ANSWER / CALL_TOOL / DECLINE under the original agentic prompt). Our contributions:"),
     ("num", [
-        f"**Behaviour in {NMW} open models.** Panels raise commitment on unknowable questions by up to {N['commit_max'].rstrip('%')} points ({N['n_full']} models reach ≥95%), and fabricated panels "
-        "work as well as real ones; an irrelevant panel mostly does not.",
+        f"**Behaviour in {NMW} open models.** In {N['n_panel']} models panels raise commitment on unknowable questions, by up to {N['commit_max'].rstrip('%')} points ({N['n_full']} reach ≥95%); fabricated panels "
+        f"work as well as real ones and an irrelevant panel mostly does not. Gemma-2-9B swaps correct declines for useless tool calls, and three newer models ({N['resist_names']}) resist panels entirely.",
         f"**A calibration that changes the conclusion.** Uncalibrated, the probes say *overriding*: the median deep-layer fooling index is {N['fi_N']} (cross-fitted) and {N['fi_X']} (cross-domain). "
-        f"We add the missing 'fooled' reference, the same question with the answer in the panel. Models then answer it, mostly correctly, but the probes move only to {N['fipost_X']} "
+        f"We add the missing 'fooled' reference, the same question with the answer in the panel. The {N['n_use']} models that act on it answer it, mostly correctly, but the probes move only to {N['fipost_X']} "
         "and the self-report barely moves. Both mostly encode the question's form. Fooled and overriding are therefore not separable with this signal, "
         "and we withdraw the 'overriding' reading of our own uncalibrated result.",
         "**Where the panel acts.** Activation patching shows that the panel's effect is carried at the question and instruction tokens in the middle of the network, largely outside "
@@ -212,9 +219,10 @@ BODY = [
 
     ("h2", "4. Results"),
     ("h3", "4.1 Panels unlock commitment; the words do not move"),
-    ("p", f"The panel effect reproduces in open models. {N['n_full']} of {NM} models go to ≥95% commitment with the panel; fabricated panels are about as effective; the irrelevant panel "
+    ("p", f"The panel effect reproduces in {N['n_panel']} of {NM} open models; {N['n_full']} go to ≥95% commitment. Fabricated panels are about as effective; the irrelevant panel "
           "mostly is not (Llama-3.1-8B: 8% vs 100%). Gemma-2-9B never commits, but its correct DECLINE collapses from 90% to 0% in favour of a search tool that cannot see the future. "
-          f"Asked directly, models call the unknowable questions unknowable at every level (mean P = {N['ask_unk']} at L2). With the answer shown, models commit on {N['post_commit']} and "
+          f"The three models added after review ({N['resist_names']}) never commit with any panel, and mostly ignore even a leaked answer (commitment {N['resist_post']}). "
+          f"Asked directly, models call the unknowable questions unknowable at every level (mean P = {N['ask_unk']} at L2). With the answer shown, the other {N['n_use']} models commit on {N['post_commit']} and "
           f"their directional calls are right {N['post_acc']} of the time (the gate excepted), so they use the leaked price. Yet asked whether the question is knowable, all but "
           f"Llama-3.1-8B still mostly say no (P = {N['post_ask']}; Llama {N['post_ask_llama']}). The words channel is thus largely blind to evidence, not a stable belief that the panel fails to shift."),
     ("table", ["Model", "L0", "L2", "L2′ irrel.", "L2-fab", "answer shown: commit / correct", "decline L0→L2", "know L2: answered / correct", "asked P(unk): unk L2 / know L2 / answer shown"],
@@ -240,8 +248,8 @@ BODY = [
      [1.15, 0.6, 0.75, 0.7, 0.7, 0.75, 0.7, 1.05]),
 
     ("h3", "4.3 The calibration: the probes are evidence-blind"),
-    ("p", f"If a low FI meant 'still represents the question as unknowable', a context that actually makes the question answerable should push FI toward 1. It does not. With the answer shown "
-          f"and acted on, median deep-layer FI is only {N['fipost_X']} (X) and {N['fipost_N']} (N). The answer does move the probe more than the panel does ({N['post_gt']} valid deep layers, "
+    ("p", f"If a low FI meant 'still represents the question as unknowable', a context that actually makes the question answerable should push FI toward 1. It does not. In the {N['n_use']} models that act on "
+          f"the leaked answer, median deep-layer FI is only {N['fipost_X']} (X) and {N['fipost_N']} (N). The answer does move the probe more than the panel does ({N['post_gt']} valid deep layers, "
           f"non-overlapping 95% CIs), but not by much. Measured against this empirical 'fooled' end, the panel moves the probe {N['ratio_X']} (X) and {N['ratio_N']} (N) of the way the real answer does: "
           "by that yardstick several models look substantially fooled, while Llama-3.1-8B's cross-fitted probe does not respond to the answer at all. Graded leakage confirms the insensitivity: "
           f"from a ±25% range (uninformative) to the exact price, X-probe FI changes by at most {N['graded_spread']} in any model, while behaviour sometimes tracks the information (Appendix C, Table 4). "
@@ -270,23 +278,23 @@ BODY = [
     ("table", ["Model", "layer", "commit unk+panel: base → +dir (random)", "commit unk+fabricated: base → +dir (random)", "knowable answered: +dir (random)", "unk, no data: base → −dir (random)"],
      steer_table(),
      "Table 3. Steering with matched controls (n = 40 per cell; random = mean of three same-norm random directions; α = ±8). Base = the unsteered run in the same batch setup (batch-dependent bf16 "
-     "numerics shift some greedy decisions by a few items). Layer: n_layers//2 if the X direction is valid there, else the first valid layer above it; * = not valid. Gemma-2-9B is omitted because it never commits.",
+     "numerics shift some greedy decisions by a few items). Layer: n_layers//2 if the X direction is valid there, else the first valid layer above it. Models that never commit with the panel are omitted.",
      [1.15, 0.4, 1.25, 1.25, 0.95, 1.15]),
 
     ("h3", "4.6 Pushback, with a neutral control"),
     ("p", "With the original, knowability-laden wording, one 'Are you sure?' made several models abandon their committed knowable answers (Llama-3.1-8B LLAMA_ORIG, Qwen3-8B QW8_ORIG, Qwen2.5-3B "
           "QW3_ORIG, gate GATE_ORIG). With a **neutral** 'Are you sure?', Llama-3.1-8B abandons LLAMA_NEU and Qwen3-8B QW8_NEU: the effect came from the wording, not the challenge. "
-          "The small Qwen2.5-3B models still fold (QW3_NEU, gate GATE_NEU), and Gemma-2-9B starts *committing* on unknowable panel items (0% → GEMMA_NEU). Inside, "
+          "Llama-3.2-3B (LL32_ORIG vs LL32_NEU) and Mistral-7B (MIS_ORIG vs MIS_NEU) show the same pattern. The small Qwen2.5-3B models still fold (QW3_NEU, gate GATE_NEU), Qwen2.5-7B folds more under the neutral wording (Q7_ORIG vs Q7_NEU), and Gemma-2-9B starts *committing* on unknowable panel items (0% → GEMMA_NEU). Inside, "
           "the X-probe gap between unknowable and knowable L2 questions shrinks after either wording (median ratio PUSH_RANGE over layers that stay valid at the new position), even where behaviour "
           "does not change. Given Section 4.3, we read this as both prompts now sharing an appended turn, not as a belief update."),
 
     ("h3", "4.7 Monitors"),
-    ("p", "Among items an agent chose to ANSWER, flagging the unknowable ones works with the X probe (AUROC 1.00 for most models) and almost as well by simply asking the model (0.96–1.00); stated "
+    ("p", "Among items an agent chose to ANSWER (original seven models), flagging the unknowable ones works with the X probe (AUROC 1.00 for most models) and almost as well by simply asking the model (0.96–1.00); stated "
           "confidence does worse (0.48–0.94). On these lexically distinct questions TF-IDF on the question alone also scores 1.00, so these monitors detect question type. The leaked-answer "
           "result shows they would flag an answerable question as unknowable just as confidently. Our pre-registered prediction that the probe would beat asking is not supported."),
 
     ("h2", "5. Discussion and Limitations"),
-    ("p", f"**Implications.** Across {NMW} open models, panels change what agents do far more than any measure we have of what they represent. But the measures themselves turn out to be "
+    ("p", f"**Implications.** In the models that panels move, they change what agents do far more than any measure we have of what they represent; newer models in our set resist panels altogether. But the measures themselves turn out to be "
           "evidence-blind: the probe and the self-report track the form of the question and barely respond when context truly answers it. Three consequences follow. (1) For evaluations, "
           "a model's statement or probe reading that 'this is unknowable' is not evidence that it is withholding a belief when it acts; probes used as honesty or doubt monitors need an "
           "answer-revealing calibration condition, the counterpart of our positive control in the other direction. (2) The panel's effect is real and localisable: it is written into the "
@@ -392,7 +400,8 @@ REFS = [
 # ---------- placeholders filled from results ----------
 def _sub(s):
     rep = {"LLAMA_ORIG": push_ab("llama31-8b", "orig"), "QW8_ORIG": push_ab("qwen3-8b", "orig"), "QW3_ORIG": push_ab("qwen25-3b", "orig"), "GATE_ORIG": push_ab("gate-3b", "orig"),
-           "LLAMA_NEU": push_ab("llama31-8b", "neutral"), "QW8_NEU": push_ab("qwen3-8b", "neutral"), "QW3_NEU": push_ab("qwen25-3b", "neutral"), "GATE_NEU": push_ab("gate-3b", "neutral")}
+           "LLAMA_NEU": push_ab("llama31-8b", "neutral"), "LL32_ORIG": push_ab("llama32-3b", "orig"), "LL32_NEU": push_ab("llama32-3b", "neutral"),
+           "MIS_ORIG": push_ab("mistral-7b", "orig"), "MIS_NEU": push_ab("mistral-7b", "neutral"), "Q7_ORIG": push_ab("qwen25-7b", "orig"), "Q7_NEU": push_ab("qwen25-7b", "neutral"), "QW8_NEU": push_ab("qwen3-8b", "neutral"), "QW3_NEU": push_ab("qwen25-3b", "neutral"), "GATE_NEU": push_ab("gate-3b", "neutral")}
     g = V4m.get("gemma2-9b", {}).get("push2", {}).get("neutral")
     rep["GEMMA_NEU"] = pc(g["behaviour"]["unk/L2"]["commit_after"]) if g else "–"
     rr = [V4m[t]["push2"][nm]["gap_ratio_deep"] for t in ORDER if t != "gate-3b" and "push2" in V4m[t] for nm in ("orig", "neutral") if V4m[t]["push2"][nm]["gap_ratio_deep"] is not None]

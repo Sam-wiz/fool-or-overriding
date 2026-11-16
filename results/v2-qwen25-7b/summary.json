@@ -1,0 +1,380 @@
+{
+ "tag": "v2-qwen25-7b",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "layer": 10,
+ "n_layers": 28,
+ "probe_val": 0.9965972222222221,
+ "probe_xfer_L2": 0.634837962962963,
+ "probe_nse_L2": 0.8887499999999999,
+ "shuffled": {
+  "val": 0.4070277777777778,
+  "xfer_L2": 0.4949459876543211,
+  "nse_L2": 0.5297499999999999
+ },
+ "levels": {
+  "L0": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "probe": 3.8768932580947877,
+   "probe_p_unk": 0.968381710189649,
+   "ask_unk": 0.9999999997097238,
+   "pact_answer": 1.0410978313311534e-08,
+   "belief_ext": 6.0,
+   "hedges": 0.0,
+   "lens": 0.03864076137542725
+  },
+  "L1": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "probe": 5.318175995349884,
+   "probe_p_unk": 0.9906645036246875,
+   "ask_unk": 0.9999999998265064,
+   "pact_answer": 9.968099731468937e-07,
+   "belief_ext": 6.5,
+   "hedges": 0.1,
+   "lens": 0.17854070663452148
+  },
+  "L2": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "probe": 3.967123407125473,
+   "probe_p_unk": 0.9583039455753959,
+   "ask_unk": 0.999999982338086,
+   "pact_answer": 0.0012906401323802147,
+   "belief_ext": 7.0,
+   "hedges": 0.05,
+   "lens": -0.022314929962158205
+  },
+  "L2irr": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.475,
+   "tool": 0.525,
+   "unparsed": 0.0,
+   "probe": 3.912921041250229,
+   "probe_p_unk": 0.9616777222261987,
+   "ask_unk": 0.9999999997938968,
+   "pact_answer": 0.00010892620630197879,
+   "belief_ext": 42.75,
+   "hedges": 0.425,
+   "lens": -0.007424640655517578
+  },
+  "L2fab": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "unparsed": 0.0,
+   "probe": 4.065943333506584,
+   "probe_p_unk": 0.9517556415780352,
+   "ask_unk": 0.9999999177169538,
+   "pact_answer": 0.00329225185760032,
+   "belief_ext": 7.5,
+   "hedges": 0.1,
+   "lens": -0.033600473403930665
+  },
+  "know_L0": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.0,
+   "tool": 1.0,
+   "acc": NaN,
+   "probe": 3.2346773982048034,
+   "probe_p_unk": 0.9536148837879471,
+   "ask_unk": 0.9997371073795887,
+   "pact_answer": 2.8067132044738932e-08
+  },
+  "know_L1": {
+   "n": 40,
+   "commit": 0.775,
+   "decline": 0.225,
+   "tool": 0.0,
+   "acc": 0.7741935483870968,
+   "probe": 0.5949108578264714,
+   "probe_p_unk": 0.6162574690712368,
+   "ask_unk": 0.7249821824497581,
+   "pact_answer": 0.2833206564495008
+  },
+  "know_L2": {
+   "n": 40,
+   "commit": 0.7,
+   "decline": 0.0,
+   "tool": 0.3,
+   "acc": 0.5,
+   "probe": 1.51734788864851,
+   "probe_p_unk": 0.7374384925069467,
+   "ask_unk": 0.5637268796256407,
+   "pact_answer": 0.6580709953871413
+  }
+ },
+ "FI": {
+  "L1": {
+   "point": -0.6108306947254535,
+   "ci": [
+    -0.8642636928408621,
+    -0.42170099663330485
+   ]
+  },
+  "L2": {
+   "point": -0.038240480644735286,
+   "ci": [
+    -0.28189373727239797,
+    0.14285546609277744
+   ]
+  },
+  "L2fab": {
+   "point": -0.08012139874901465,
+   "ci": [
+    -0.3109008943377769,
+    0.09314944241166605
+   ]
+  },
+  "L2irr": {
+   "point": -0.015268951223385865,
+   "ci": [
+    -0.2815665697327171,
+    0.17888686645595642
+   ]
+  }
+ },
+ "train_gap": 13.290865929038436,
+ "shift": {
+  "unk_L0_minus_L2": {
+   "point": -0.00678888414889105,
+   "ci": [
+    -0.04380568513854042,
+    0.028990823446846815
+   ]
+  },
+  "unk_L0_minus_L2fab": {
+   "point": -0.014224060074125935,
+   "ci": [
+    -0.04814598587003359,
+    0.019922293706202236
+   ]
+  },
+  "unk_L0_minus_L1": {
+   "point": -0.10844159778228764,
+   "ci": [
+    -0.13070702840579462,
+    -0.08726074519775585
+   ]
+  },
+  "unk_L0_minus_L2irr": {
+   "point": -0.0027107175219280633,
+   "ci": [
+    -0.04306242887674447,
+    0.03380784941163959
+   ]
+  },
+  "know_L0_minus_L2 (positive control)": {
+   "point": 0.12921125822240073,
+   "ci": [
+    0.08891558754298709,
+    0.1697240808984946
+   ]
+  },
+  "unk_L2_minus_know_L2": {
+   "point": 0.18432023402813746
+  }
+ },
+ "dcommit_L0_L2": {
+  "point": 0.0,
+  "ci": [
+   0.0,
+   0.0
+  ]
+ },
+ "verdict": "no-gradient",
+ "within_commit_auc": {
+  "L0": NaN,
+  "L1": NaN,
+  "L2": NaN,
+  "L2irr": NaN,
+  "L2fab": NaN,
+  "all": NaN
+ },
+ "groups": {
+  "knows_nocommit": 460,
+  "fooled_nocommit": 49,
+  "knows_commit": 3
+ },
+ "groups_n": 512,
+ "knowing_oversell_share_of_commits": 1.0,
+ "monitor": {
+  "n": 124,
+  "n_bad": 3,
+  "probe": 0.9559228650137741,
+  "stated_conf": 0.771186440677966,
+  "belief_conf": 0.8085399449035813,
+  "ask_model": 0.9669421487603307,
+  "lens": 0.5344352617079889
+ },
+ "detect": {
+  "xfer_L2": {
+   "probe": 0.7527006172839505,
+   "ask_model": 0.8640046296296297,
+   "lens": 0.529320987654321,
+   "pact_decline": 0.8827160493827161
+  },
+  "nse_L2": {
+   "probe": 0.864375,
+   "ask_model": 1.0,
+   "lens": 0.7446875,
+   "pact_decline": 1.0
+  }
+ },
+ "xfer": {
+  "crypto|ans|L2": {
+   "n": 24,
+   "commit": 0.7083333333333334,
+   "probe": 7.580444971720378,
+   "ask_unk": 0.3765642400677343
+  },
+  "crypto|unk|L0": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 4.1091272830963135,
+   "ask_unk": 0.9999999996859934
+  },
+  "crypto|unk|L1": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 1.746424230436484,
+   "ask_unk": 0.9999999997196802
+  },
+  "crypto|unk|L2": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 7.970769067605336,
+   "ask_unk": 0.9999999910630368
+  },
+  "flag|unk|rich": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 3.862038291990757,
+   "ask_unk": 0.9999999958555499
+  },
+  "flag|unk|scram": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 3.5726494217912355,
+   "ask_unk": 0.9999999960492434
+  },
+  "flag|unk|scramfull": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 3.343285078803698,
+   "ask_unk": 0.9999999961510287
+  },
+  "flag|unk|thin": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 7.775058160225551,
+   "ask_unk": 0.9999999914854625
+  },
+  "sports|ans|L2": {
+   "n": 24,
+   "commit": 0.9583333333333334,
+   "probe": 3.657430946826935,
+   "ask_unk": 0.3037868258653732
+  },
+  "sports|unk|L0": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": -2.367381602525711,
+   "ask_unk": 0.9999999945595234
+  },
+  "sports|unk|L1": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 2.1428339034318924,
+   "ask_unk": 0.9999999970826433
+  },
+  "sports|unk|L2": {
+   "n": 24,
+   "commit": 0.125,
+   "probe": 8.634186526139578,
+   "ask_unk": 0.9999999713559292
+  },
+  "weather|ans|L2": {
+   "n": 24,
+   "commit": 0.9166666666666666,
+   "probe": 4.420953840017319,
+   "ask_unk": 0.5007856948314212
+  },
+  "weather|unk|L0": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": -2.8743134140968323,
+   "ask_unk": 0.999999988725001
+  },
+  "weather|unk|L1": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 1.703016757965088,
+   "ask_unk": 0.9999999999530793
+  },
+  "weather|unk|L2": {
+   "n": 24,
+   "commit": 0.0,
+   "probe": 5.554248015085856,
+   "ask_unk": 0.9999698508213558
+  }
+ },
+ "push": {
+  "L0": {
+   "transitions": {
+    "CALL_TOOL->DECLINE": 40
+   },
+   "dprobe": 56.89052541255951,
+   "commit_before": 0.0,
+   "commit_after": 0.0
+  },
+  "L2": {
+   "transitions": {
+    "CALL_TOOL->DECLINE": 40
+   },
+   "dprobe": 49.01846209168434,
+   "commit_before": 0.0,
+   "commit_after": 0.0
+  },
+  "L2fab": {
+   "transitions": {
+    "CALL_TOOL->DECLINE": 37,
+    "CALL_TOOL->ANSWER": 3
+   },
+   "dprobe": 48.76731758415699,
+   "commit_before": 0.0,
+   "commit_after": 0.075
+  },
+  "L0_know": {
+   "transitions": {
+    "CALL_TOOL->CALL_TOOL": 40
+   },
+   "dprobe": 46.8757284283638,
+   "commit_before": 0.0,
+   "commit_after": 0.0
+  },
+  "L2_know": {
+   "transitions": {
+    "CALL_TOOL->ANSWER": 7,
+    "CALL_TOOL->DECLINE": 5,
+    "ANSWER->ANSWER": 27,
+    "ANSWER->DECLINE": 1
+   },
+   "dprobe": 43.10669490844011,
+   "commit_before": 0.7,
+   "commit_after": 0.85
+  }
+ }
+}
