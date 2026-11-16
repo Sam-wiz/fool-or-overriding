@@ -1,0 +1,20 @@
+{
+ "tfidf_full_prompt|word|val": 0.955625,
+ "tfidf_full_prompt|word|xfer_L2": 0.5472608024691358,
+ "tfidf_full_prompt|word|nse_L2": 0.935625,
+ "tfidf_full_prompt|char_wb|val": 0.9506249999999999,
+ "tfidf_full_prompt|char_wb|xfer_L2": 0.5279706790123457,
+ "tfidf_full_prompt|char_wb|nse_L2": 0.999375,
+ "tfidf_question_only|word|val": 0.9653472222222222,
+ "tfidf_question_only|word|xfer_L2": 0.9110725308641976,
+ "tfidf_question_only|word|nse_L2": 1.0,
+ "tfidf_question_only|char_wb|val": 0.9720138888888888,
+ "tfidf_question_only|char_wb|xfer_L2": 0.9928626543209876,
+ "tfidf_question_only|char_wb|nse_L2": 1.0,
+ "tfidf_panel_only|word|val": 0.7777777777777778,
+ "tfidf_panel_only|word|xfer_L2": 0.5,
+ "tfidf_panel_only|word|nse_L2": 0.49999999999999994,
+ "tfidf_panel_only|char_wb|val": 0.7777777777777778,
+ "tfidf_panel_only|char_wb|xfer_L2": 0.5,
+ "tfidf_panel_only|char_wb|nse_L2": 0.49999999999999994
+}

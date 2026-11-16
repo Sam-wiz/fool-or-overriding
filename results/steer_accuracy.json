@@ -1,0 +1,99 @@
+{
+ "qwen3-14b": {
+  "xdir+8": {
+   "acc": 0.775,
+   "n_answered": 40,
+   "n": 40
+  },
+  "random+8": {
+   "acc": 1.0,
+   "n_answered": 120,
+   "n": 120
+  }
+ },
+ "llama31-8b": {
+  "xdir+0": {
+   "acc": 1.0,
+   "n_answered": 40,
+   "n": 40
+  },
+  "xdir+8": {
+   "acc": 0.75,
+   "n_answered": 40,
+   "n": 40
+  },
+  "random+8": {
+   "acc": 0.85,
+   "n_answered": 80,
+   "n": 120
+  }
+ },
+ "qwen3-8b": {
+  "xdir+0": {
+   "acc": 0.775,
+   "n_answered": 40,
+   "n": 40
+  },
+  "xdir+8": {
+   "acc": 0.275,
+   "n_answered": 40,
+   "n": 40
+  },
+  "random+8": {
+   "acc": 0.35,
+   "n_answered": 120,
+   "n": 120
+  }
+ },
+ "qwen3-4b": {
+  "xdir+0": {
+   "acc": 1.0,
+   "n_answered": 40,
+   "n": 40
+  },
+  "xdir+8": {
+   "acc": 0.675,
+   "n_answered": 40,
+   "n": 40
+  },
+  "random+8": {
+   "acc": 0.8666666666666667,
+   "n_answered": 120,
+   "n": 120
+  }
+ },
+ "qwen25-3b": {
+  "xdir+0": {
+   "acc": 0.275,
+   "n_answered": 40,
+   "n": 40
+  },
+  "xdir+8": {
+   "acc": 0.275,
+   "n_answered": 40,
+   "n": 40
+  },
+  "random+8": {
+   "acc": 0.275,
+   "n_answered": 120,
+   "n": 120
+  }
+ },
+ "gate-3b": {
+  "xdir+0": {
+   "acc": 0.9,
+   "n_answered": 40,
+   "n": 40
+  },
+  "xdir+8": {
+   "acc": 1.0,
+   "n_answered": 40,
+   "n": 40
+  },
+  "random+8": {
+   "acc": 0.8333333333333334,
+   "n_answered": 120,
+   "n": 120
+  }
+ }
+}

@@ -1,0 +1,120 @@
+# Build the sprint report into the official Apart template (.docx).  usage: python build_report.py
+# Content lives in report/content.py as a list of blocks.
+import copy, re, sys, os, importlib.util
+import docx
+from docx.shared import Pt, Inches, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+spec = importlib.util.spec_from_file_location("content", "report/content.py"); C = importlib.util.module_from_spec(spec); spec.loader.exec_module(C)
+d = docx.Document("report/template.docx")
+
+# ---------------- title / authors / abstract block ----------------
+t0 = d.tables[0]
+title_p = [p for p in t0.rows[0].cells[0].paragraphs if p.style.name == "Title"][0]
+for r in title_p.runs[1:]: r.text = ""
+title_p.runs[0].text = C.TITLE
+# replace the nested author/abstract grid (renders badly outside Google Docs) with full-width paragraphs
+t0._tbl.remove(t0.rows[1]._tr)
+from docx.oxml.ns import qn
+import copy as _copy
+def _para_after(anchor_el, text, size=10, bold=False, italic=False, center=False, space_after=4):
+    newp = d.add_paragraph(); r = newp.add_run(text); r.font.size = Pt(size); r.bold = bold; r.italic = italic
+    if center: newp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    newp.paragraph_format.space_after = Pt(space_after); newp.paragraph_format.line_spacing = 1.0
+    anchor_el.addnext(newp._p); return newp._p
+el = t0._tbl
+el = _para_after(el, "   ·   ".join(f"{n} ({a})" for n, a in C.AUTHORS), size=10.5, center=True, space_after=1)
+el = _para_after(el, "With Apart Research", size=9.5, italic=True, center=True, space_after=8)
+el = _para_after(el, "Abstract", size=11, bold=True, center=True, space_after=2)
+el = _para_after(el, C.ABSTRACT, size=9.5, space_after=6)
+# remove info-box table (table 1)
+info = d.tables[1]._tbl; info.getparent().remove(info)
+
+# ---------------- body ----------------
+body = d.element.body
+start = None
+for i, p in enumerate(d.paragraphs):
+    if p.text.strip().startswith("1. Introduction"): start = p; break
+# delete everything from the first section heading onward (except sectPr)
+el = start._p
+while el is not None:
+    nxt = el.getnext()
+    if el.tag.endswith("sectPr"): break
+    body.remove(el); el = nxt
+sect = body[-1]
+
+BODY_PT = getattr(C, "BODY_PT", 10)
+def add_par(text, style="normal", bold=False, italic=False, size=None, align=None, space_after=4):
+    p = d.add_paragraph(style=style)
+    # inline **bold** and *italic*
+    for tok in re.split(r"(\*\*[^*]+\*\*|\*[^*]+\*)", text):
+        if not tok: continue
+        if tok.startswith("**"): r = p.add_run(tok[2:-2]); r.bold = True
+        elif tok.startswith("*"): r = p.add_run(tok[1:-1]); r.italic = True
+        else: r = p.add_run(tok)
+        if bold: r.bold = True
+        if italic: r.italic = True
+        if size: r.font.size = Pt(size)
+    if align == "center": p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(space_after); p.paragraph_format.space_before = Pt(0)
+    if style == "normal":
+        p.paragraph_format.line_spacing = 1.0
+        for r in p.runs:
+            if r.font.size is None: r.font.size = Pt(BODY_PT)
+    return p
+
+SUBS = {"STEER_TITLE": getattr(C, "ST2", {}).get("title", ""), "STEER_TEXT": getattr(C, "ST2", {}).get("text", "(pending)"),
+        "PER_MODEL_EXTRA": getattr(C, "EXTRA_TEXT", ""), "GITHUB_URL": getattr(C, "GITHUB_URL", "https://github.com/<to-be-created>")}
+def sub(x):
+    if isinstance(x, str):
+        for k, v in SUBS.items(): x = x.replace(k, v)
+    return x
+for blk in C.BODY:
+    blk = tuple(sub(b) if isinstance(b, str) else ([sub(z) for z in b] if isinstance(b, list) and b and isinstance(b[0], str) else b) for b in blk)
+    kind = blk[0]
+    if kind == "refs":
+        for i, r in enumerate(C.REFS):
+            p = add_par(f"[{i + 1}] {r}", size=8.5, space_after=1); p.paragraph_format.left_indent = Inches(0.25); p.paragraph_format.first_line_indent = Inches(-0.25)
+        continue
+    if kind == "h2": add_par(blk[1], style="Heading 2")
+    elif kind == "h3": add_par(blk[1], style="Heading 3")
+    elif kind == "p": add_par(blk[1])
+    elif kind == "bullets":
+        for b in blk[1]:
+            p = add_par("•  " + b); p.paragraph_format.left_indent = Inches(0.2)
+    elif kind == "num":
+        for i, b in enumerate(blk[1]):
+            p = add_par(f"{i + 1}.  " + b); p.paragraph_format.left_indent = Inches(0.2)
+    elif kind == "fig":
+        path, width, cap = blk[1], blk[2], blk[3]
+        p = d.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run().add_picture(path, width=Inches(width))
+        add_par(cap, size=8.5, space_after=8)
+    elif kind == "table":
+        header, rows, cap, widths = blk[1], blk[2], blk[3], (blk[4] if len(blk) > 4 else None)
+        capp = add_par(cap, size=8.5, space_after=2); capp.paragraph_format.keep_with_next = True
+        tb = d.add_table(rows=1 + len(rows), cols=len(header)); tb.style = d.styles["Table Grid"] if "Table Grid" in [s.name for s in d.styles] else tb.style
+        for j, h in enumerate(header):
+            c = tb.rows[0].cells[j]; c.text = ""; r = c.paragraphs[0].add_run(h); r.bold = True; r.font.size = Pt(7.5)
+        for i, row in enumerate(rows):
+            for j, v in enumerate(row):
+                c = tb.rows[i + 1].cells[j]; c.text = ""; r = c.paragraphs[0].add_run(str(v)); r.font.size = Pt(7.5)
+        if widths:
+            for row in tb.rows:
+                for j, w in enumerate(widths): row.cells[j].width = Inches(w)
+        from docx.oxml import OxmlElement
+        for ri, row in enumerate(tb.rows):
+            trPr = row._tr.get_or_add_trPr(); cs = OxmlElement("w:cantSplit"); trPr.append(cs)
+            if ri < len(tb.rows) - 1:
+                for c in row.cells:
+                    for pp in c.paragraphs: pp.paragraph_format.keep_with_next = True
+        add_par("", space_after=4)
+    elif kind == "pagebreak":
+        from docx.enum.text import WD_BREAK
+        d.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+    elif kind == "small":
+        for line in blk[1].split("\n"): add_par(line, size=8.5, space_after=2)
+# move sectPr to end
+body.remove(sect); body.append(sect)
+os.makedirs("report/out", exist_ok=True)
+d.save("report/out/report.docx"); print("saved report/out/report.docx")

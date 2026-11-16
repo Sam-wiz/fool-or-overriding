@@ -1,0 +1,177 @@
+{
+ "v2-qwen3-14b": {
+  "within_L2_commit_auc": null,
+  "within_L2_n_commit": 40,
+  "within_L2fab_commit_auc": null,
+  "within_L2fab_n_commit": 40,
+  "within_L2irr_commit_auc": 0.7142857142857143,
+  "within_L2irr_n_commit": 5,
+  "within_flag_commit_auc": 0.853475935828877,
+  "flag_n_commit": 85,
+  "monitor": {
+   "n": 250,
+   "n_bad": 170,
+   "xprobe": 1.0,
+   "ask": 0.9587499999999999,
+   "stated_conf": 0.8765808823529411,
+   "synth_probe": 0.8610294117647058
+  },
+  "commit_prob": {
+   "n": 85,
+   "frac_50": 0.0,
+   "mean_abs_dev": 10.823529411764707,
+   "frac_confident": 0.3764705882352941
+  },
+  "know_L2_acc": 1.0
+ },
+ "v2-llama31-8b": {
+  "within_L2_commit_auc": null,
+  "within_L2_n_commit": 40,
+  "within_L2fab_commit_auc": 0.4229390681003584,
+  "within_L2fab_n_commit": 31,
+  "within_L2irr_commit_auc": 0.47747747747747743,
+  "within_L2irr_n_commit": 3,
+  "within_flag_commit_auc": 0.4708994708994708,
+  "flag_n_commit": 63,
+  "monitor": {
+   "n": 297,
+   "n_bad": 177,
+   "xprobe": 1.0,
+   "ask": 1.0,
+   "stated_conf": 0.839030131826742,
+   "synth_probe": 0.36327683615819206
+  },
+  "commit_prob": {
+   "n": 114,
+   "frac_50": 0.008771929824561403,
+   "mean_abs_dev": 9.868421052631579,
+   "frac_confident": 0.24561403508771928
+  },
+  "know_L2_acc": 1.0
+ },
+ "v2-qwen3-8b": {
+  "within_L2_commit_auc": 0.5833333333333333,
+  "within_L2_n_commit": 10,
+  "within_L2fab_commit_auc": 0.3137254901960784,
+  "within_L2fab_n_commit": 6,
+  "within_L2irr_commit_auc": null,
+  "within_L2irr_n_commit": 0,
+  "within_flag_commit_auc": 0.7207743857036486,
+  "flag_n_commit": 17,
+  "monitor": {
+   "n": 113,
+   "n_bad": 33,
+   "xprobe": 1.0,
+   "ask": 1.0,
+   "stated_conf": 0.9369318181818181,
+   "synth_probe": 0.6382575757575758
+  },
+  "commit_prob": {
+   "n": 16,
+   "frac_50": 0.0,
+   "mean_abs_dev": 11.25,
+   "frac_confident": 0.5625
+  },
+  "know_L2_acc": 0.775
+ },
+ "v2-qwen3-4b": {
+  "within_L2_commit_auc": null,
+  "within_L2_n_commit": 40,
+  "within_L2fab_commit_auc": null,
+  "within_L2fab_n_commit": 40,
+  "within_L2irr_commit_auc": 0.4578005115089514,
+  "within_L2irr_n_commit": 17,
+  "within_flag_commit_auc": 0.9508599508599509,
+  "flag_n_commit": 74,
+  "monitor": {
+   "n": 251,
+   "n_bad": 171,
+   "xprobe": 1.0,
+   "ask": 0.9994152046783625,
+   "stated_conf": 0.48062865497076024,
+   "synth_probe": 1.0
+  },
+  "commit_prob": {
+   "n": 97,
+   "frac_50": 0.6082474226804123,
+   "mean_abs_dev": 5.0,
+   "frac_confident": 0.21649484536082475
+  },
+  "know_L2_acc": 1.0
+ },
+ "v2-qwen25-3b": {
+  "within_L2_commit_auc": 0.45600000000000007,
+  "within_L2_n_commit": 15,
+  "within_L2fab_commit_auc": 0.5677083333333334,
+  "within_L2fab_n_commit": 16,
+  "within_L2irr_commit_auc": null,
+  "within_L2irr_n_commit": 0,
+  "within_flag_commit_auc": 0.6780487804878049,
+  "flag_n_commit": 55,
+  "monitor": {
+   "n": 167,
+   "n_bad": 87,
+   "xprobe": 0.6001436781609195,
+   "ask": 0.9992816091954023,
+   "stated_conf": 0.6770114942528737,
+   "synth_probe": 0.19152298850574712
+  },
+  "commit_prob": {
+   "n": 32,
+   "frac_50": 0.0,
+   "mean_abs_dev": 18.683870967741935,
+   "frac_confident": 0.6451612903225806
+  },
+  "know_L2_acc": 0.275
+ },
+ "v2-gemma2-9b": {
+  "within_L2_commit_auc": null,
+  "within_L2_n_commit": 0,
+  "within_L2fab_commit_auc": null,
+  "within_L2fab_n_commit": 0,
+  "within_L2irr_commit_auc": null,
+  "within_L2irr_n_commit": 0,
+  "within_flag_commit_auc": null,
+  "flag_n_commit": 0,
+  "monitor": {
+   "n": 91,
+   "n_bad": 0,
+   "xprobe": null,
+   "ask": null,
+   "stated_conf": null,
+   "synth_probe": null
+  },
+  "commit_prob": {
+   "n": 0,
+   "frac_50": null,
+   "mean_abs_dev": null,
+   "frac_confident": null
+  },
+  "know_L2_acc": 1.0
+ },
+ "v2-gate-3b": {
+  "within_L2_commit_auc": null,
+  "within_L2_n_commit": 0,
+  "within_L2fab_commit_auc": null,
+  "within_L2fab_n_commit": 0,
+  "within_L2irr_commit_auc": null,
+  "within_L2irr_n_commit": 0,
+  "within_flag_commit_auc": null,
+  "flag_n_commit": 0,
+  "monitor": {
+   "n": 80,
+   "n_bad": 0,
+   "xprobe": null,
+   "ask": null,
+   "stated_conf": null,
+   "synth_probe": null
+  },
+  "commit_prob": {
+   "n": 0,
+   "frac_50": null,
+   "mean_abs_dev": null,
+   "frac_confident": null
+  },
+  "know_L2_acc": 0.85
+ }
+}

@@ -1,0 +1,19 @@
+# whitelist: only what the submission needs
+/*
+!/.gitignore
+!/README.md
+!/PREREGISTRATION_AND_LOG.md
+!/src/
+!/data/
+!/results/
+!/report/
+/data/gate_adapter/
+/results/smoke-*/
+/report/out/*
+!/report/out/Fooled_or_Overriding_Apart_AIxEpistemics.pdf
+/report/template.txt
+*.npy
+*.log
+__pycache__/
+.DS_Store
+/results/*/adapter/

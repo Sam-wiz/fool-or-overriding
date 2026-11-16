@@ -1,0 +1,523 @@
+{
+ "tag": "v2-qwen3-8b",
+ "model": "Qwen/Qwen3-8B",
+ "NL": 36,
+ "behaviour": {
+  "unk_L0": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999999987704,
+   "p50": null
+  },
+  "unk_L1": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999999979051,
+   "p50": null
+  },
+  "unk_L2": {
+   "n": 40,
+   "commit": 0.25,
+   "decline": 0.75,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999969816777,
+   "p50": 0.0
+  },
+  "unk_L2irr": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 0.925,
+   "tool": 0.0,
+   "unparsed": 0.075,
+   "ask_unk": 0.9999999999256788,
+   "p50": null
+  },
+  "unk_L2fab": {
+   "n": 40,
+   "commit": 0.15,
+   "decline": 0.85,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999999981968998,
+   "p50": 0.0
+  },
+  "know_L0": {
+   "n": 40,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.9999959763817546,
+   "p50": null
+  },
+  "know_L1": {
+   "n": 40,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.037164150037035104,
+   "p50": 0.025
+  },
+  "know_L2": {
+   "n": 40,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0,
+   "unparsed": 0.0,
+   "ask_unk": 0.0015715472755801468,
+   "p50": 0.0
+  },
+  "xfer_crypto_unk_L0": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_crypto_unk_L1": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_crypto_unk_L2": {
+   "n": 24,
+   "commit": 0.125
+  },
+  "xfer_crypto_ans_L2": {
+   "n": 24,
+   "commit": 1.0,
+   "acc": 0.75
+  },
+  "xfer_sports_unk_L0": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_sports_unk_L1": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_sports_unk_L2": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_sports_ans_L2": {
+   "n": 24,
+   "commit": 1.0,
+   "acc": 0.75
+  },
+  "xfer_weather_unk_L0": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_weather_unk_L1": {
+   "n": 24,
+   "commit": 0.0
+  },
+  "xfer_weather_unk_L2": {
+   "n": 24,
+   "commit": 1.0
+  },
+  "xfer_weather_ans_L2": {
+   "n": 24,
+   "commit": 1.0,
+   "acc": 0.75
+  },
+  "flag_thin": {
+   "n": 24,
+   "commit": 0.125
+  },
+  "flag_rich": {
+   "n": 24,
+   "commit": 0.125
+  },
+  "flag_scram": {
+   "n": 24,
+   "commit": 0.20833333333333334
+  },
+  "flag_scramfull": {
+   "n": 24,
+   "commit": 0.25
+  }
+ },
+ "layer_verdicts": {
+  "X_dm": {
+   "n_valid": 20,
+   "n_layers": 36,
+   "n_valid_deep": 19,
+   "median_FI_deep": 0.28172996640205383,
+   "median_FI_early": 0.317912757396698,
+   "verdict_deep": "Mixed"
+  },
+  "N_dm_crossfit": {
+   "n_valid": 21,
+   "n_layers": 36,
+   "n_valid_deep": 18,
+   "median_FI_deep": 0.1483614794160258,
+   "median_FI_early": 0.2482500997816474,
+   "verdict_deep": "Overriding"
+  }
+ },
+ "xsteer": {
+  "random|8|know_L0": {
+   "n": 120,
+   "pact_lo": -8.470067871111006
+  },
+  "random|8|know_L2": {
+   "n": 120,
+   "pact_lo": 12.891111094524062
+  },
+  "random|8|unk_L0": {
+   "n": 120,
+   "pact_lo": -16.630622169551774
+  },
+  "random|8|unk_L2": {
+   "n": 120,
+   "pact_lo": -5.494378119577693
+  },
+  "random|8|unk_L2fab": {
+   "n": 120,
+   "pact_lo": -5.719362370211359
+  },
+  "random|16|know_L0": {
+   "n": 120,
+   "pact_lo": 2.5706130711629678,
+   "commit": 0.35833333333333334,
+   "decline": 0.3333333333333333,
+   "tool": 0.0
+  },
+  "random|16|know_L2": {
+   "n": 120,
+   "pact_lo": 4.194054670188792,
+   "commit": 0.5916666666666667,
+   "decline": 0.3,
+   "tool": 0.0
+  },
+  "random|16|unk_L0": {
+   "n": 120,
+   "pact_lo": 1.578285825276904,
+   "commit": 0.5583333333333333,
+   "decline": 0.38333333333333336,
+   "tool": 0.0
+  },
+  "random|16|unk_L2": {
+   "n": 120,
+   "pact_lo": 3.4780574090606198,
+   "commit": 0.5,
+   "decline": 0.30833333333333335,
+   "tool": 0.0
+  },
+  "random|16|unk_L2fab": {
+   "n": 120,
+   "pact_lo": 3.456896147478676,
+   "commit": 0.5166666666666667,
+   "decline": 0.3,
+   "tool": 0.0
+  },
+  "xdir|-8|know_L0": {
+   "n": 40,
+   "pact_lo": 8.77574329430187,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|-8|know_L2": {
+   "n": 40,
+   "pact_lo": 25.700809124583223,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|-8|unk_L0": {
+   "n": 40,
+   "pact_lo": -1.3695022445510072,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0
+  },
+  "xdir|-8|unk_L2": {
+   "n": 40,
+   "pact_lo": 2.218526425611981,
+   "commit": 0.925,
+   "decline": 0.075,
+   "tool": 0.0
+  },
+  "xdir|-8|unk_L2fab": {
+   "n": 40,
+   "pact_lo": 2.010934945042853,
+   "commit": 0.875,
+   "decline": 0.125,
+   "tool": 0.0
+  },
+  "xdir|-4|know_L0": {
+   "n": 40,
+   "pact_lo": 0.3536493046237704
+  },
+  "xdir|-4|know_L2": {
+   "n": 40,
+   "pact_lo": 25.780899176685324
+  },
+  "xdir|-4|unk_L0": {
+   "n": 40,
+   "pact_lo": -7.54417787169655
+  },
+  "xdir|-4|unk_L2": {
+   "n": 40,
+   "pact_lo": -0.443877701678944
+  },
+  "xdir|-4|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -0.7940317549595319
+  },
+  "xdir|-2|know_L0": {
+   "n": 40,
+   "pact_lo": -4.000522538094271
+  },
+  "xdir|-2|know_L2": {
+   "n": 40,
+   "pact_lo": 24.162432184721677
+  },
+  "xdir|-2|unk_L0": {
+   "n": 40,
+   "pact_lo": -11.953717291623972
+  },
+  "xdir|-2|unk_L2": {
+   "n": 40,
+   "pact_lo": -0.9501279994396098
+  },
+  "xdir|-2|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -1.581422832221607
+  },
+  "xdir|0|know_L0": {
+   "n": 40,
+   "pact_lo": -7.907649281891014,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0
+  },
+  "xdir|0|know_L2": {
+   "n": 40,
+   "pact_lo": 20.956234703731564,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|0|unk_L0": {
+   "n": 40,
+   "pact_lo": -16.07252531127834,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0
+  },
+  "xdir|0|unk_L2": {
+   "n": 40,
+   "pact_lo": -1.0188969621766786,
+   "commit": 0.25,
+   "decline": 0.75,
+   "tool": 0.0
+  },
+  "xdir|0|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -1.8252014869997624,
+   "commit": 0.15,
+   "decline": 0.85,
+   "tool": 0.0
+  },
+  "xdir|2|know_L0": {
+   "n": 40,
+   "pact_lo": -11.782076330105387
+  },
+  "xdir|2|know_L2": {
+   "n": 40,
+   "pact_lo": 17.234355578198656
+  },
+  "xdir|2|unk_L0": {
+   "n": 40,
+   "pact_lo": -18.816399669781493
+  },
+  "xdir|2|unk_L2": {
+   "n": 40,
+   "pact_lo": -1.1755170309723877
+  },
+  "xdir|2|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -1.9192079805553341
+  },
+  "xdir|4|know_L0": {
+   "n": 40,
+   "pact_lo": -14.17136046034624,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0
+  },
+  "xdir|4|know_L2": {
+   "n": 40,
+   "pact_lo": 13.731208131027028,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|4|unk_L0": {
+   "n": 40,
+   "pact_lo": -19.247706368626794,
+   "commit": 0.0,
+   "decline": 0.775,
+   "tool": 0.0
+  },
+  "xdir|4|unk_L2": {
+   "n": 40,
+   "pact_lo": -0.9294490087063249,
+   "commit": 0.15,
+   "decline": 0.85,
+   "tool": 0.0
+  },
+  "xdir|4|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -1.4893990526981193,
+   "commit": 0.175,
+   "decline": 0.825,
+   "tool": 0.0
+  },
+  "xdir|8|know_L0": {
+   "n": 40,
+   "pact_lo": -12.131829266441727,
+   "commit": 0.0,
+   "decline": 0.95,
+   "tool": 0.05
+  },
+  "xdir|8|know_L2": {
+   "n": 40,
+   "pact_lo": 5.3484889939008,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|8|unk_L0": {
+   "n": 40,
+   "pact_lo": -13.493217900446846,
+   "commit": 0.0,
+   "decline": 1.0,
+   "tool": 0.0
+  },
+  "xdir|8|unk_L2": {
+   "n": 40,
+   "pact_lo": -0.36425250312907753,
+   "commit": 0.025,
+   "decline": 0.175,
+   "tool": 0.8
+  },
+  "xdir|8|unk_L2fab": {
+   "n": 40,
+   "pact_lo": -0.6977156719988822,
+   "commit": 0.075,
+   "decline": 0.225,
+   "tool": 0.7
+  },
+  "xdir|16|know_L0": {
+   "n": 40,
+   "pact_lo": -1.1316739609153341,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|16|know_L2": {
+   "n": 40,
+   "pact_lo": 0.016931252128368168,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|16|unk_L0": {
+   "n": 40,
+   "pact_lo": -0.7923038113275499,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|16|unk_L2": {
+   "n": 40,
+   "pact_lo": 0.2521550044222313,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  },
+  "xdir|16|unk_L2fab": {
+   "n": 40,
+   "pact_lo": 0.15727090880527678,
+   "commit": 1.0,
+   "decline": 0.0,
+   "tool": 0.0
+  }
+ },
+ "push": {
+  "unk_L0": {
+   "n": 40,
+   "commit_before": 0.0,
+   "commit_after": 0.0,
+   "decline_before": 1.0,
+   "decline_after": 1.0,
+   "x_before": 1.790553703904152,
+   "x_after": 1.343475791811943,
+   "transitions": {
+    "DECLINE->DECLINE": 40
+   }
+  },
+  "unk_L2": {
+   "n": 40,
+   "commit_before": 0.25,
+   "commit_after": 0.0,
+   "decline_before": 0.75,
+   "decline_after": 1.0,
+   "x_before": 1.7755154490470886,
+   "x_after": 1.236719810962677,
+   "transitions": {
+    "DECLINE->DECLINE": 30,
+    "ANSWER->DECLINE": 10
+   }
+  },
+  "unk_L2fab": {
+   "n": 40,
+   "commit_before": 0.15,
+   "commit_after": 0.0,
+   "decline_before": 0.85,
+   "decline_after": 1.0,
+   "x_before": 1.792066639661789,
+   "x_after": 1.2884916633367538,
+   "transitions": {
+    "DECLINE->DECLINE": 34,
+    "ANSWER->DECLINE": 6
+   }
+  },
+  "know_L0": {
+   "n": 40,
+   "commit_before": 0.0,
+   "commit_after": 0.0,
+   "decline_before": 1.0,
+   "decline_after": 1.0,
+   "x_before": 1.2928634971380233,
+   "x_after": 0.9857822507619858,
+   "transitions": {
+    "DECLINE->DECLINE": 40
+   }
+  },
+  "know_L2": {
+   "n": 40,
+   "commit_before": 1.0,
+   "commit_after": 0.275,
+   "decline_before": 0.0,
+   "decline_after": 0.725,
+   "x_before": 1.2246670335531236,
+   "x_after": 0.8470647245645523,
+   "transitions": {
+    "ANSWER->DECLINE": 29,
+    "ANSWER->ANSWER": 11
+   }
+  },
+  "sep_L2_before": 1.0,
+  "sep_L2_after": 0.991875
+ }
+}
