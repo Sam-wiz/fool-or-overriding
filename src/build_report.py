@@ -10,6 +10,10 @@ d = docx.Document("report/template.docx")
 from docx.oxml.ns import qn as _qn
 from docx.oxml import OxmlElement as _OE
 FONT = getattr(C, "FONT", "XCharter")
+def _smart(t):
+    """straight quotes -> typographic (apostrophes and single quotes), as in the authors' LaTeX preprint."""
+    t = re.sub(r"(^|[\s(\[{/—–-])'", lambda m: m.group(1) + "\u2018", t)
+    return t.replace("'", "\u2019")
 def _style_font(st, size=None, bold=None, color=(0, 0, 0)):
     rpr = st.element.get_or_add_rPr()
     rf = rpr.find(_qn("w:rFonts"))
@@ -32,7 +36,7 @@ def _rule_below(p, sz=4, color="808080"):
 t0 = d.tables[0]
 title_p = [p for p in t0.rows[0].cells[0].paragraphs if p.style.name == "Title"][0]
 for r in title_p.runs[1:]: r.text = ""
-title_p.runs[0].text = C.TITLE
+title_p.runs[0].text = C.TITLE.replace("'", "\u2019")
 title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 for r in title_p.runs: r.font.name = FONT; r.font.size = Pt(16.5); r.bold = True; r.font.color.rgb = RGBColor(0, 0, 0)
 # replace the nested author/abstract grid (renders badly outside Google Docs) with full-width paragraphs
@@ -52,7 +56,7 @@ el = _para_after(el, "Code, data and every cached model output: " + getattr(C, "
 _rp = d.add_paragraph(); _rp.paragraph_format.space_after = Pt(8); _rule_below(_rp, sz=6, color="000000"); el.addnext(_rp._p); el = _rp._p
 _ab = d.add_paragraph(); _r = _ab.add_run("ABSTRACT"); _r.bold = True; _r.font.size = Pt(9.5); _r.font.small_caps = False
 _ab.alignment = WD_ALIGN_PARAGRAPH.CENTER; _ab.paragraph_format.space_after = Pt(4); el.addnext(_ab._p); el = _ab._p
-_ap = d.add_paragraph(); _r = _ap.add_run(C.ABSTRACT); _r.font.size = Pt(9.5)
+_ap = d.add_paragraph(); _r = _ap.add_run(_smart(C.ABSTRACT)); _r.font.size = Pt(9.5)
 _ap.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY; _ap.paragraph_format.left_indent = Inches(0.45); _ap.paragraph_format.right_indent = Inches(0.45)
 _ap.paragraph_format.line_spacing = 1.12; _ap.paragraph_format.space_after = Pt(10); el.addnext(_ap._p); el = _ap._p
 # remove info-box table (table 1)
@@ -71,10 +75,12 @@ while el is not None:
     body.remove(el); el = nxt
 sect = body[-1]
 
+
 BODY_PT = getattr(C, "BODY_PT", 10)
 def add_par(text, style="normal", bold=False, italic=False, size=None, align=None, space_after=4):
     p = d.add_paragraph(style=style)
     # inline **bold** and *italic*
+    text = _smart(text)
     for tok in re.split(r"(\*\*[^*]+\*\*|\*[^*]+\*)", text):
         if not tok: continue
         if tok.startswith("**"): r = p.add_run(tok[2:-2]); r.bold = True
@@ -102,6 +108,7 @@ def add_caption(text, space_after=8, keep_next=False):
     label, rest = (m.group(1), m.group(2)) if m else ("", text)
     if label:
         r = p.add_run(label + " "); r.bold = True; r.font.size = Pt(CAP_PT)
+    rest = _smart(rest)
     for tok in re.split(r"(\*\*[^*]+\*\*|\*[^*]+\*)", rest):
         if not tok: continue
         if tok.startswith("**"): r = p.add_run(tok[2:-2]); r.bold = True
@@ -160,6 +167,7 @@ def sub(x):
     if isinstance(x, str):
         for k, v in SUBS.items(): x = x.replace(k, v)
     return x
+_PB_NEXT = False
 for blk in C.BODY:
     blk = tuple(sub(b) if isinstance(b, str) else ([sub(z) for z in b] if isinstance(b, list) and b and isinstance(b[0], str) else b) for b in blk)
     kind = blk[0]
@@ -169,6 +177,7 @@ for blk in C.BODY:
         continue
     if kind == "h2":
         _hp = add_par(re.sub(r"^(\d+)\.\s+", r"\1   ", blk[1]), style="Heading 2"); _rule_below(_hp, sz=4, color="999999")
+        if _PB_NEXT: _hp.paragraph_format.page_break_before = True; _PB_NEXT = False
     elif kind == "h3": add_par(re.sub(r"^(\d+\.\d+)\s+", r"\1   ", blk[1]), style="Heading 3")
     elif kind == "p": add_par(blk[1])
     elif kind == "bullets":
@@ -201,8 +210,7 @@ for blk in C.BODY:
                     for pp in c.paragraphs: pp.paragraph_format.keep_with_next = True
         add_par("", space_after=4)
     elif kind == "pagebreak":
-        from docx.enum.text import WD_BREAK
-        d.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+        _PB_NEXT = True   # start the next section heading on a new page (never leaves an empty page)
     elif kind == "small":
         for line in blk[1].split("\n"): add_par(line, size=8.5, space_after=2)
 # move sectPr to end
