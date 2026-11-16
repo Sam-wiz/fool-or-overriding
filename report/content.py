@@ -457,11 +457,6 @@ BODY = [
      dom_table(),
      "Table 6. New real-data domains (pipeline B; 40 cases each; 2026 data). Probe gap: change in B's decision-orthogonalised unknowable-minus-answerable gap (positive = not fooled).",
      [0.7, 1.1, 1.5, 0.75, 1.0, 1.0]),
-    ("fig", "report/figs/fig2_depth.png", 5.6,
-     "Figure 4. Fooling index (panel) at every layer for the X (green) and N (purple) probes; filled points pass the validity gate. Green band < 0.25, red band > 0.5; clipped to [−0.5, 1.6]. "
-     "Early layers often sit in the 'fooled' zone; Section 4.3 shows the scale itself is compressed."),
-    ("fig", "report/figs/fig4_push.png", 6.0,
-     "Figure 5. Commitment before and after the original (knowability-laden) 'Are you sure?' for unknowable and knowable L2 questions (n = 40 each)."),
     ("p", "**Monitors.** Among items an agent chose to ANSWER (original seven models), flagging the unknowable ones works with the X probe (AUROC 1.00 for most models) and almost as well by simply asking the model (0.96–1.00); stated "
           "confidence does worse (0.48–0.94). On these lexically distinct questions TF-IDF on the question alone also scores 1.00, so these monitors detect question type. The leaked-answer "
           "result shows they would flag an answerable question as unknowable just as confidently. Our pre-registered prediction that the probe would beat asking is not supported."),
@@ -469,17 +464,22 @@ BODY = [
           "so its fooling indices are uninterpretable. Text baselines: TF-IDF on the question alone separates knowable from unknowable with AUROC 1.00 on stock L2 and 0.91–0.99 on transfer. "
           "**Base vs instruct** (raw prompts, deep.py): base Qwen2.5-3B and Llama-3.1-8B do not follow the decision format and no layer passes the validity gate, so the comparison is inconclusive. "
           "The full steering sweep is in results/v2-*/xsteer.json."),
+    ("fig", "report/figs/fig2_depth.png", 5.6,
+     "Figure 4. Fooling index (panel) at every layer for the X (green) and N (purple) probes; filled points pass the validity gate. Green band < 0.25, red band > 0.5; clipped to [−0.5, 1.6]. "
+     "Early layers often sit in the 'fooled' zone; Section 4.3 shows the scale itself is compressed."),
+    ("fig", "report/figs/fig4_push.png", 6.0,
+     "Figure 5. Commitment before and after the original (knowability-laden) 'Are you sure?' for unknowable and knowable L2 questions (n = 40 each)."),
 ]
 
 REFS = [
     "Aggarwal, P. (2026). Calibrated Enough to Know, Not Calibrated to Act: Fabricated Evidence Makes LLM Agents Commit to the Unknowable. arXiv:2608.27167.",
     "Arditi, A. et al. (2024). Refusal in Language Models Is Mediated by a Single Direction. arXiv:2406.11717.",
     "Azaria, A. & Mitchell, T. (2023). The Internal State of an LLM Knows When It's Lying. arXiv:2304.13734.",
+    "Boxo, G., Neelappa, A. & Raval, S. (2025). Linear Probes Rely on Textual Evidence: Results from Leakage Mitigation Studies in Language Models. arXiv:2509.21344.",
     "Du, Y. & Hu, X. (2026). Recognition-Refusal Misalignment in LLMs: Why Models Answer Structurally Unanswerable Questions. arXiv:2608.29109.",
     "Fanous, A. et al. (2025). SycEval: Evaluating LLM Sycophancy. arXiv:2502.08177.",
     "Ferrando, J., Obeso, O., Rajamanoharan, S. & Nanda, N. (2024). Do I Know This Entity? Knowledge Awareness and Hallucinations in Language Models. arXiv:2411.14257.",
     "Goldowsky-Dill, N., Chughtai, B., Heimersheim, S. & Hobbhahn, M. (2025). Detecting Strategic Deception Using Linear Probes. arXiv:2502.03407.",
-    "Boxo, G., Neelappa, A. & Raval, S. (2025). Linear Probes Rely on Textual Evidence: Results from Leakage Mitigation Studies in Language Models. arXiv:2509.21344.",
     "Gurnee, W., Sofroniew, N. et al. (2026). Verbalizable Representations Form a Global Workspace in Language Models. arXiv:2607.15495.",
     "Halawi, D., Denain, J.-S. & Steinhardt, J. (2023). Overthinking the Truth: Understanding how Language Models Process False Demonstrations. arXiv:2307.09476.",
     "Jayabahu, D. (2026). The Truth Was Never Gone: Perfect Aliasing in Compliant-Context Truth Probes. arXiv:2609.10739.",
@@ -489,16 +489,16 @@ REFS = [
     "Kirichenko, P. et al. (2025). AbstentionBench: Reasoning LLMs Fail on Unanswerable Questions. arXiv:2506.09038.",
     "Laban, P. et al. (2023). Are You Sure? Challenging LLMs Leads to Performance Drops in The FlipFlop Experiment. arXiv:2311.08596.",
     "Lavi, M. J., Milo, T. & Geva, M. (2025). Detecting (Un)answerability in Large Language Models with Linear Directions. arXiv:2509.22449.",
-    "Liu, X. et al. (2026). AgentAbstain: Do LLM Agents Know When Not to Act? arXiv:2607.10059.",
     "Levinstein, B. A. & Herrmann, D. A. (2023). Still No Lie Detector for Language Models: Probing Empirical and Conceptual Roadblocks. arXiv:2307.00175.",
+    "Liu, X. et al. (2026). AgentAbstain: Do LLM Agents Know When Not to Act? arXiv:2607.10059.",
     "Marks, S. & Tegmark, M. (2023). The Geometry of Truth: Emergent Linear Structure in LLM Representations of True/False Datasets. arXiv:2310.06824.",
     "Orgad, H. et al. (2024). LLMs Know More Than They Show: On the Intrinsic Representation of LLM Hallucinations. arXiv:2410.02707.",
     "Ren, R. et al. (2025). The MASK Benchmark: Disentangling Honesty From Accuracy in AI Systems. arXiv:2503.03750.",
     "Rimsky, N. et al. (2023). Steering Llama 2 via Contrastive Activation Addition. arXiv:2312.06681.",
     "Sahoo, S. et al. (2026). Linear Probes Detect Task Format, Not Reasoning Mode in Language Model Hidden States. arXiv:2606.02907.",
     "Slobodkin, A. et al. (2023). The Curious Case of Hallucinatory (Un)answerability: Finding Truths in the Hidden States of Over-Confident Large Language Models. arXiv:2310.11877.",
-    "Wang, K. et al. (2025). When Truth Is Overridden: Uncovering the Internal Origins of Sycophancy in Large Language Models. arXiv:2508.02087.",
     "Wang, J., Zhou, Y., Devic, S. & Fu, D. (2026). Are LLM Decisions Faithful to Verbal Confidence? arXiv:2601.07767.",
+    "Wang, K. et al. (2025). When Truth Is Overridden: Uncovering the Internal Origins of Sycophancy in Large Language Models. arXiv:2508.02087.",
     "Zhan, Z. et al. (2026). How Adversarial Environments Mislead Agentic AI? arXiv:2604.18874.",
     "Zou, A. et al. (2023). Representation Engineering: A Top-Down Approach to AI Transparency. arXiv:2310.01405.",
 ]
